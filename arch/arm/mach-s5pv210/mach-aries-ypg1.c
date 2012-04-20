@@ -198,6 +198,9 @@ static int aries_notifier_call(struct notifier_block *this,
 			mode = REBOOT_MODE_DOWNLOAD;
 		else
 			mode = REBOOT_MODE_NONE;
+
+	  /* Show logo.jpg on reboot instead of _charging.jpg when USB is connected. */
+	  writel(0x12345678, S5P_INFORM5);
 	}
 	if (code != SYS_POWER_OFF) {
 		if (sec_set_param_value) {
