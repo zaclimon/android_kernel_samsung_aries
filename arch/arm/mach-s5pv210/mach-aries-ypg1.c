@@ -198,9 +198,6 @@ static int aries_notifier_call(struct notifier_block *this,
 			mode = REBOOT_MODE_DOWNLOAD;
 		else
 			mode = REBOOT_MODE_NONE;
-
-	  /* Show logo.jpg on reboot instead of _charging.jpg when USB is connected. */
-	  writel(0x12345678, S5P_INFORM5);
 	}
 	if (code != SYS_POWER_OFF) {
 		if (sec_set_param_value) {
@@ -2624,6 +2621,9 @@ static struct platform_device sec_device_jack = {
 #define S5PV210_PS_HOLD_CONTROL_REG (S3C_VA_SYS+0xE81C)
 static void aries_power_off(void)
 {
+        /* Clear S5P_INFORM5 flag so we can enter lpm. */
+	writel(0x0, S5P_INFORM5);
+
 	while (1) {
 		/* Check reboot charging */
 		if (set_cable_status) {
