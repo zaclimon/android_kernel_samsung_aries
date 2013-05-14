@@ -329,11 +329,7 @@
 #define SIG_MDNIE_VIDEO_COLD_MODE			3
 #define SIG_MDNIE_CAMERA_MODE				4
 #define SIG_MDNIE_NAVI						5
-#define SIG_MDNIe_DMB_MODE					6
-#define SIG_MDNIe_DMB_WARM_MODE				7
-#define SIG_MDNIe_DMB_COLD_MODE				8
-#define SIG_MDNIE_GALLERY					9
-#define SIG_MDNIE_VT_MODE					10
+#define SIG_MDNIE_BYPASS_MODE				6
 
 
 typedef enum
@@ -348,6 +344,7 @@ typedef enum
 	mDNIe_DMB_WARM_MODE,
 	mDNIe_DMB_COLD_MODE,
 	mDNIe_GALLERY,
+        mDNIe_BYPASS_MODE,
 	MDNIE_VT_MODE,
 }Lcd_mDNIe_UI;
 
