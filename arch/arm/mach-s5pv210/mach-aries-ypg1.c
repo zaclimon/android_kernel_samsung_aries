@@ -99,6 +99,8 @@
 #include <plat/clock.h>
 #include <plat/regs-otg.h>
 #include <linux/gp2a.h>
+
+#include <linux/yas529.h>
 #include <../../../drivers/video/samsung/s3cfb.h>
 #include <linux/sec_jack.h>
 #include <linux/input/mxt224.h>
@@ -2412,9 +2414,15 @@ static struct i2c_board_info i2c_devs11[] __initdata = {
 	},
 };
 
+static struct yas529_platform_data yas529_pdata = {
+	.reset_line = GPIO_MSENSE_nRST,
+	.reset_asserted = GPIO_LEVEL_LOW,
+};
+
 static struct i2c_board_info i2c_devs12[] __initdata = {
 	{
 		I2C_BOARD_INFO("yas529", 0x2e),
+		.platform_data = &yas529_pdata,
 	},
 };
 
