@@ -58,7 +58,7 @@ load_len=$boot_len
 
 # The buyer code is needed for the touch screen driver, so go ahead and
 # copy all of the efs data now.
-busybox mount -t yaffs2 /dev/block/mtdblock5 /efs
+busybox mount -t yaffs2 /dev/block/mtdblock4 /efs
 if busybox test -e /efs/buyer_code.dat ; then
 	cat /efs/buyer_code.dat > /sys/firmware/efs/buyer_code
 fi
@@ -86,7 +86,7 @@ elif ! busybox test -e /system/build.prop ; then
 	# emergency boot
         erase_image cache
 	busybox mkdir -p /cache
-        busybox mount -t yaffs2 /dev/block/mtdblock4 /cache
+        busybox mount -t yaffs2 /dev/block/mtdblock3 /cache
         busybox mkdir /cache/recovery
 
 	busybox mkdir -p /sdcard
