@@ -72,6 +72,10 @@ config INPUT_BMA023
 	tristate "Bosch Sensortec BMA023 Acceleration Sensor"
 	depends on I2C
 
+config INPUT_BMA222
+	tristate "Bosch Sensortec BMA222 Acceleration Sensor"
+	depends on I2C
+
 config INPUT_KR3DH
         depends on I2C
         tristate "KR3DH driver for s5pc11x"
