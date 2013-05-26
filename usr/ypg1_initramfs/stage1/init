@@ -9,6 +9,7 @@ busybox mkdir -p /dev/mtd
 busybox mkdir -p /proc
 busybox mkdir -p /sys
 busybox mkdir -p /system
+busybox mkdir -p /efs
 busybox mknod -m 0666 /dev/block/mmcblk0 b 179 0
 busybox mknod -m 0666 /dev/block/mmcblk0p1 b 179 1
 busybox mknod -m 0666 /dev/mtd/mtd0     c 90 0
@@ -60,10 +61,10 @@ load_len=$boot_len
 # copy all of the efs data now.
 busybox mount -t yaffs2 /dev/block/mtdblock4 /efs
 if busybox test -e /efs/buyer_code.dat ; then
-	cat /efs/buyer_code.dat > /sys/firmware/efs/buyer_code
+	busybox cat /efs/buyer_code.dat > /sys/firmware/efs/buyer_code
 fi
 if busybox test -e /efs/imei/bt.txt ; then
-	cat /efs/imei/bt.txt > /sys/firmware/efs/bt_addr
+	busybox cat /efs/imei/bt.txt > /sys/firmware/efs/bt_addr
 fi
 busybox umount /efs
 busybox rm -rf /efs
