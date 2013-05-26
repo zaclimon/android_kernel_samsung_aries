@@ -1565,9 +1565,16 @@ static void sec_jack_set_micbias_state(bool on)
 	spin_unlock_irqrestore(&mic_bias_lock, flags);
 }
 
+static void wm8994_set_ear_path(bool on)
+{
+        printk("wm8994_set_ear_path(%d)\n", on);
+	gpio_set_value(GPIO_MUTE_ON, on);
+}
+
 static struct wm8994_platform_data wm8994_pdata = {
 	.ldo = GPIO_CODEC_LDO_EN,
 	.set_mic_bias = wm8994_set_mic_bias,
+        .set_ear_path = wm8994_set_ear_path,
 };
 
 /*
@@ -3262,7 +3269,7 @@ static void __init sound_init(void)
 	__raw_writel(reg, S5P_CLK_OUT);
 
 	gpio_request(GPIO_MICBIAS_EN, "micbias_enable");
-	gpio_request(GPIO_MICBIAS_EN2, "sub_micbias_enable");
+	gpio_request(GPIO_MICBIAS_EN2, "micbias2_enable");
 	gpio_request(GPIO_MUTE_ON, "earpath_enable");
 }
 

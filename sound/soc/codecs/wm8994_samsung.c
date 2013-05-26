@@ -369,6 +369,7 @@ static int wm8994_set_path(struct snd_kcontrol *kcontrol,
 	struct soc_enum *mc = (struct soc_enum *)kcontrol->private_value;
 	int val;
 	int path_num = ucontrol->value.integer.value[0];
+        int ear_path = 0;
 
 	if (strcmp(mc->texts[path_num], playback_path[path_num])) {
 		DEBUG_LOG_ERR("Unknown path %s\n", mc->texts[path_num]);
@@ -411,6 +412,9 @@ static int wm8994_set_path(struct snd_kcontrol *kcontrol,
 		path_num -= 4;
 		break;
         case EXTRA_DOCK_SPEAKER:
+                if(path_num == HP || path_num == HP_NO_MIC || path_num == SPK_HP)
+                        ear_path = 1;
+
                 DEBUG_LOG("routing to %s\n", mc->texts[path_num]);
                 wm8994->ringtone_active = RING_OFF;
 		path_num -= 4;
@@ -432,7 +436,14 @@ static int wm8994_set_path(struct snd_kcontrol *kcontrol,
 	}
 
 	wm8994->cur_path = path_num;
-	wm8994->universal_playback_path[wm8994->cur_path] (codec);
+
+	if (ear_path) {
+        	wm8994->universal_playback_path[wm8994->cur_path] (codec);
+                wm8994->pdata->set_ear_path(true);
+        } else {
+                wm8994->pdata->set_ear_path(false);
+        	wm8994->universal_playback_path[wm8994->cur_path] (codec);
+        }
 
 	return 0;
 }
@@ -479,6 +490,7 @@ static int wm8994_set_fmradio_path(struct snd_kcontrol *kcontrol,
 	case FMR_SPK:
 		DEBUG_LOG("routing fmradio path to %s\n", mc->texts[path_num]);
 		wm8994->fmr_mix_path = FMR_MIX_OFF;
+                wm8994->pdata->set_ear_path(false);
 		wm8994_set_fmradio_speaker(codec);
 		break;
 
@@ -486,12 +498,14 @@ static int wm8994_set_fmradio_path(struct snd_kcontrol *kcontrol,
 		DEBUG_LOG("routing fmradio path to %s\n", mc->texts[path_num]);
 		wm8994->fmr_mix_path = FMR_MIX_OFF;
 		wm8994_set_fmradio_headset(codec);
+                wm8994->pdata->set_ear_path(true);
 		break;
 
 	case FMR_DUAL_MIX:
 		DEBUG_LOG("routing fmradio path to %s\n", mc->texts[path_num]);
 		wm8994->fmr_mix_path = FMR_DUAL_MIX;
 		wm8994_set_fmradio_speaker_headset_mix(codec);
+                wm8994->pdata->set_ear_path(true);
 		break;
 
 	default:
@@ -585,6 +599,7 @@ static int wm8994_set_voice_path(struct snd_kcontrol *kcontrol,
 	struct soc_enum *mc = (struct soc_enum *)kcontrol->private_value;
 
 	int path_num = ucontrol->value.integer.value[0];
+        int ear_path = 0;
 
 	if (strcmp(mc->texts[path_num], voicecall_path[path_num])) {
 		DEBUG_LOG_ERR("Unknown path %s\n", mc->texts[path_num]);
@@ -603,6 +618,10 @@ static int wm8994_set_voice_path(struct snd_kcontrol *kcontrol,
 	case CALL_TTY_VCO:
 	case CALL_TTY_HCO:
 	case CALL_TTY_FULL:
+
+                if(path_num == HP || path_num == HP_NO_MIC)
+                        ear_path = 1;
+
 		DEBUG_LOG("routing  voice path to %s\n", mc->texts[path_num]);
 		break;
 	default:
@@ -615,7 +634,15 @@ static int wm8994_set_voice_path(struct snd_kcontrol *kcontrol,
 			!(wm8994->codec_state & CALL_ACTIVE)) {
 		wm8994->codec_state |= CALL_ACTIVE;
 		wm8994->cur_path = path_num;
-		wm8994->universal_voicecall_path[wm8994->cur_path] (codec);
+		
+                if (ear_path) {
+                        wm8994->universal_voicecall_path[wm8994->cur_path] (codec);
+                        wm8994->pdata->set_ear_path(true);
+                } else {
+                        wm8994->pdata->set_ear_path(false);
+                        wm8994->universal_voicecall_path[wm8994->cur_path] (codec);
+                }
+
 	} else {
 		int val;
 		val = wm8994_read(codec, WM8994_AIF1_DAC1_FILTERS_1);
@@ -1314,6 +1341,7 @@ static void wm8994_shutdown_codec(struct snd_pcm_substream *substream,
 			(wm8994->stream_state == PCM_STREAM_DEACTIVE)) {
 		DEBUG_LOG("Turn off Codec!!");
 		wm8994->pdata->set_mic_bias(false);
+                wm8994->pdata->set_ear_path(false);
 		wm8994->power_state = CODEC_OFF;
 		wm8994->fmradio_path = FMR_OFF;
 		wm8994->cur_path = OFF;
@@ -3156,7 +3184,7 @@ static int wm8994_codec_probe(struct snd_soc_codec *codec)
 		goto err_bad_pdata;
 	}
 
-	if (!pdata->set_mic_bias) {
+	if (!pdata->set_mic_bias || !pdata->set_ear_path) {
 		dev_err(codec->dev, "bad pdata WM8994\n");
 		goto err_bad_pdata;
 	}
@@ -3265,6 +3293,7 @@ static int wm8994_suspend(struct snd_soc_codec *codec, pm_message_t state)
 
 	if (wm8994->codec_state == DEACTIVE &&
 		wm8994->stream_state == PCM_STREAM_DEACTIVE) {
+                wm8994->pdata->set_ear_path(false);
 		wm8994->power_state = CODEC_OFF;
 		wm8994_write(codec, WM8994_SOFTWARE_RESET, 0x0000);
 		wm8994_ldo_control(wm8994->pdata, 0);

@@ -1214,6 +1214,20 @@ void audio_ctrl_mic_bias_gpio(struct wm8994_platform_data *pdata, int enable)
 	}
 }
 
+void audio_ctrl_ear_path_gpio(struct wm8994_platform_data *pdata, int enable)
+{
+	DEBUG_LOG("enable = [%d]", enable);
+
+	if (!pdata)
+		pr_err("failed to turn off earpath pin\n");
+	else {
+		if (enable)
+			pdata->set_ear_path(true);
+		else
+			pdata->set_ear_path(false);
+	}
+}
+
 static int wm8994_earsel_control(struct wm8994_platform_data *pdata, int en)
 {
 
@@ -1594,6 +1608,7 @@ void wm8994_record_headset_mic(struct snd_soc_codec *codec)
 	DEBUG_LOG("Recording through Headset Mic\n");
 
 	wm8994_earsel_control(wm8994->pdata, 1);
+        audio_ctrl_ear_path_gpio(wm8994->pdata, 1);
 
 	wm8994_write(codec, WM8994_ANTIPOP_2, 0x68);
 
@@ -1995,6 +2010,7 @@ void wm8994_set_playback_headset(struct snd_soc_codec *codec)
 	DEBUG_LOG("");
 
 	wm8994_earsel_control(wm8994->pdata, 0);
+        audio_ctrl_ear_path_gpio(wm8994->pdata, 1);
 
 	/* Enable the Timeslot0 to DAC1L */
 	val = wm8994_read(codec, WM8994_DAC1_LEFT_MIXER_ROUTING);
@@ -2288,6 +2304,7 @@ void wm8994_set_playback_speaker_headset(struct snd_soc_codec *codec)
 	u8  nservo4high = 0;
 
 	wm8994_earsel_control(wm8994->pdata, 0);
+        audio_ctrl_ear_path_gpio(wm8994->pdata, 1);
 
 	/* Enable the Timeslot0 to DAC1L */
 	val = wm8994_read(codec, WM8994_DAC1_LEFT_MIXER_ROUTING);
@@ -2955,6 +2972,7 @@ void wm8994_set_voicecall_headset(struct snd_soc_codec *codec)
 	DEBUG_LOG("");
 
 	wm8994_earsel_control(wm8994->pdata, 1);
+        audio_ctrl_ear_path_gpio(wm8994->pdata, 1);
 
 	wm8994_set_voicecall_common_setting(codec);
 
@@ -3127,6 +3145,8 @@ void wm8994_set_voicecall_headphone(struct snd_soc_codec *codec)
 	audio_ctrl_mic_bias_gpio(wm8994->pdata, 1);
 
 	wm8994_earsel_control(wm8994->pdata, 1);
+       
+        audio_ctrl_ear_path_gpio(wm8994->pdata, 1);
 
 	wm8994_set_voicecall_common_setting(codec);
 
