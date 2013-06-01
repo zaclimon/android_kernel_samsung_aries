@@ -2254,11 +2254,6 @@ void wm8994_set_playback_speaker(struct snd_soc_codec *codec)
 	val &= ~(WM8994_DAC1R_MUTE_MASK);
 	wm8994_write(codec, WM8994_DAC1_RIGHT_VOLUME, val);
 
-	/* Unmute and volume ctrl RightDAC */
-	val = wm8994_read(codec, WM8994_DAC1_RIGHT_VOLUME);
-	val &= ~(WM8994_DAC1R_MUTE_MASK);
-	wm8994_write(codec, WM8994_DAC1_RIGHT_VOLUME, val);
-
 	val = wm8994_read(codec, WM8994_SPKOUT_MIXERS);
 	val &= ~(WM8994_SPKMIXL_TO_SPKOUTL_MASK |
 		 WM8994_SPKMIXL_TO_SPKOUTR_MASK |                
@@ -2429,10 +2424,10 @@ void wm8994_set_playback_speaker_headset(struct snd_soc_codec *codec)
 	val = wm8994_read(codec, WM8994_POWER_MANAGEMENT_1);
 	val &= ~(WM8994_BIAS_ENA_MASK | WM8994_VMID_SEL_MASK |
 		WM8994_HPOUT1L_ENA_MASK | WM8994_HPOUT1R_ENA_MASK |
-		WM8994_SPKOUTL_ENA_MASK);
+		WM8994_SPKOUTL_ENA_MASK | WM8994_SPKOUTR_ENA_MASK);
 	val |= (WM8994_BIAS_ENA | WM8994_VMID_SEL_NORMAL |
 		WM8994_HPOUT1R_ENA | WM8994_HPOUT1L_ENA |
-		WM8994_SPKOUTL_ENA);
+		WM8994_SPKOUTL_ENA | WM8994_SPKOUTR_ENA);
 	wm8994_write(codec, WM8994_POWER_MANAGEMENT_1, val);
 
 	val = (WM8994_HPOUT1L_DLY | WM8994_HPOUT1R_DLY);
