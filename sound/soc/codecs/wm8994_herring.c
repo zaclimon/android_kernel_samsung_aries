@@ -125,7 +125,11 @@ struct gain_info_t cdma_playback_gain_table[PLAYBACK_GAIN_CDMA_NUM] = {
 		.mode = PLAYBACK_SPK,
 		.reg  = WM8994_SPEAKER_VOLUME_RIGHT,	/* 27h */
 		.mask = WM8994_SPKOUTR_VOL_MASK,
+#ifdef CONFIG_SAMSUNG_YPG1
+                .gain = WM8994_SPKOUT_VU | 0x3E    /* +5dB */
+#else
 		.gain = 0
+#endif
 	}, {
 		.mode = PLAYBACK_SPK,
 		.reg  = WM8994_CLASSD,			/* 25h */
@@ -180,7 +184,11 @@ struct gain_info_t cdma_playback_gain_table[PLAYBACK_GAIN_CDMA_NUM] = {
 		.mode = PLAYBACK_SPK_HP,
 		.reg  = WM8994_SPEAKER_VOLUME_RIGHT,	/* 27h */
 		.mask = WM8994_SPKOUTR_VOL_MASK,
-		.gain = 0x0
+#ifdef CONFIG_SAMSUNG_YPG1
+                .gain = WM8994_SPKOUT_VU | 0x3E
+#else
+		.gain = 0
+#endif
 	}, {
 		.mode = PLAYBACK_SPK_HP,
 		.reg  = WM8994_CLASSD,			/* 25h */
@@ -213,6 +221,11 @@ struct gain_info_t cdma_playback_gain_table[PLAYBACK_GAIN_CDMA_NUM] = {
 		.gain = WM8994_SPKOUT_VU | 0x3E
 	}, {
 		.mode = PLAYBACK_RING_SPK,
+		.reg  = WM8994_SPEAKER_VOLUME_RIGHT,	/* 27h */
+		.mask = WM8994_SPKOUTR_VOL_MASK,
+		.gain = WM8994_SPKOUT_VU | 0x3E		
+	},{
+		.mode = PLAYBACK_RING_SPK,
 		.reg  = WM8994_CLASSD,			/* 25h */
 		.mask = WM8994_SPKOUTL_BOOST_MASK,
 		.gain = 0x5 << WM8994_SPKOUTL_BOOST_SHIFT
@@ -241,6 +254,11 @@ struct gain_info_t cdma_playback_gain_table[PLAYBACK_GAIN_CDMA_NUM] = {
 		.reg  = WM8994_SPEAKER_VOLUME_LEFT,	/* 26h */
 		.mask = WM8994_SPKOUTL_VOL_MASK,
 		.gain = WM8994_SPKOUT_VU | 0x3E
+	}, {
+		.mode = PLAYBACK_RING_SPK_HP,
+		.reg  = WM8994_SPEAKER_VOLUME_RIGHT,	/* 27h */
+		.mask = WM8994_SPKOUTR_VOL_MASK,
+		.gain = WM8994_SPKOUT_VU | 0x3E		
 	}, {
 		.mode = PLAYBACK_RING_SPK_HP,
 		.reg  = WM8994_CLASSD,			/* 25h */
@@ -575,7 +593,11 @@ struct gain_info_t playback_gain_table[PLAYBACK_GAIN_NUM] = {
 		.mode = PLAYBACK_SPK,
 		.reg  = WM8994_SPEAKER_VOLUME_RIGHT,	/* 27h */
 		.mask = WM8994_SPKOUTR_VOL_MASK,
+#ifdef CONFIG_SAMSUNG_YPG1
+                .gain = WM8994_SPKOUT_VU | 0x3E    /* +5dB */
+#else
 		.gain = 0
+#endif
 	}, {
 		.mode = PLAYBACK_SPK,
 		.reg  = WM8994_CLASSD,			/* 25h */
@@ -630,7 +652,11 @@ struct gain_info_t playback_gain_table[PLAYBACK_GAIN_NUM] = {
 		.mode = PLAYBACK_SPK_HP,
 		.reg  = WM8994_SPEAKER_VOLUME_RIGHT,	/* 27h */
 		.mask = WM8994_SPKOUTR_VOL_MASK,
+#ifdef CONFIG_SAMSUNG_YPG1
+                .gain = WM8994_SPKOUT_VU | 0x3E    /* +5dB */
+#else
 		.gain = 0x0
+#endif
 	}, {
 		.mode = PLAYBACK_SPK_HP,
 		.reg  = WM8994_CLASSD,			/* 25h */
@@ -691,6 +717,11 @@ struct gain_info_t playback_gain_table[PLAYBACK_GAIN_NUM] = {
 		.reg  = WM8994_SPEAKER_VOLUME_LEFT,	/* 26h */
 		.mask = WM8994_SPKOUTL_VOL_MASK,
 		.gain = WM8994_SPKOUT_VU | 0x3E
+	}, {
+		.mode = PLAYBACK_RING_SPK_HP,
+		.reg  = WM8994_SPEAKER_VOLUME_RIGHT,	/* 27h */
+		.mask = WM8994_SPKOUTR_VOL_MASK,
+		.gain = WM8994_SPKOUT_VU | 0x3E		
 	}, {
 		.mode = PLAYBACK_RING_SPK_HP,
 		.reg  = WM8994_CLASSD,			/* 25h */
@@ -1291,25 +1322,27 @@ void wm8994_disable_path(struct snd_soc_codec *codec)
 		break;
 
 	case SPK:
-		/* Disbale the SPKOUTL */
-		val &= ~(WM8994_SPKOUTL_ENA_MASK);
+		/* Disbale the SPKOUTL/R */
+		val &= ~(WM8994_SPKOUTL_ENA_MASK | WM8994_SPKOUTR_ENA_MASK);
 		wm8994_write(codec, WM8994_POWER_MANAGEMENT_1, val);
 
-		/* Disable SPKLVOL */
+		/* Disable SPKL/RVOL */
 		val = wm8994_read(codec, WM8994_POWER_MANAGEMENT_3);
-		val &= ~(WM8994_SPKLVOL_ENA_MASK);
+		val &= ~(WM8994_SPKLVOL_ENA_MASK | WM8994_SPKRVOL_ENA_MASK);
 		wm8994_write(codec, WM8994_POWER_MANAGEMENT_3, val);
 
 		/* Disable SPKOUT mixer */
 		val = wm8994_read(codec, WM8994_SPKOUT_MIXERS);
 		val &= ~(WM8994_SPKMIXL_TO_SPKOUTL_MASK |
+                         WM8994_SPKMIXL_TO_SPKOUTR_MASK |
 			 WM8994_SPKMIXR_TO_SPKOUTL_MASK |
 			 WM8994_SPKMIXR_TO_SPKOUTR_MASK);
 		wm8994_write(codec, WM8994_SPKOUT_MIXERS, val);
 
 		/* Mute Speaker mixer */
 		val = wm8994_read(codec, WM8994_SPEAKER_MIXER);
-		val &= ~(WM8994_DAC1L_TO_SPKMIXL_MASK);
+		val &= ~(WM8994_DAC1L_TO_SPKMIXL_MASK | 
+                        WM8994_DAC1R_TO_SPKMIXR_MASK);
 		wm8994_write(codec, WM8994_SPEAKER_MIXER, val);
 		break;
 
@@ -1360,7 +1393,7 @@ void wm8994_disable_path(struct snd_soc_codec *codec)
 
 	case SPK_HP:
 		val &= ~(WM8994_HPOUT1L_ENA_MASK | WM8994_HPOUT1R_ENA_MASK |
-				WM8994_SPKOUTL_ENA_MASK);
+				WM8994_SPKOUTL_ENA_MASK | WM8994_SPKOUTR_ENA_MASK);
 		wm8994_write(codec, WM8994_POWER_MANAGEMENT_1, val);
 
 		/* Disable DAC1L to HPOUT1L path */
@@ -1388,9 +1421,9 @@ void wm8994_disable_path(struct snd_soc_codec *codec)
 		      WM8994_HPOUT1L_OUTP_MASK | WM8994_HPOUT1L_RMV_SHORT_MASK);
 		wm8994_write(codec, WM8994_ANALOGUE_HP_1, val);
 
-		/* Disable SPKLVOL */
+		/* Disable SPKL/RVOL */
 		val = wm8994_read(codec, WM8994_POWER_MANAGEMENT_3);
-		val &= ~(WM8994_SPKLVOL_ENA_MASK);
+		val &= ~(WM8994_SPKLVOL_ENA_MASK | WM8994_SPKRVOL_ENA_MASK);
 		wm8994_write(codec, WM8994_POWER_MANAGEMENT_3, val);
 
 		/* Disable SPKOUT mixer */
@@ -1983,7 +2016,8 @@ void wm8994_set_playback_receiver(struct snd_soc_codec *codec)
 	val = wm8994_read(codec, WM8994_POWER_MANAGEMENT_1);
 	val &= ~(WM8994_BIAS_ENA_MASK | WM8994_VMID_SEL_MASK |
 			WM8994_HPOUT2_ENA_MASK | WM8994_HPOUT1L_ENA_MASK |
-			WM8994_HPOUT1R_ENA_MASK | WM8994_SPKOUTL_ENA_MASK);
+			WM8994_HPOUT1R_ENA_MASK | WM8994_SPKOUTL_ENA_MASK | 
+			WM8994_SPKOUTR_ENA_MASK);
 	val |= (WM8994_BIAS_ENA | WM8994_VMID_SEL_NORMAL | WM8994_HPOUT2_ENA);
 	wm8994_write(codec, WM8994_POWER_MANAGEMENT_1, val);
 
@@ -2188,14 +2222,14 @@ void wm8994_set_playback_speaker(struct snd_soc_codec *codec)
 
 	/* Disable end point for preventing pop up noise.*/
 	val = wm8994_read(codec, WM8994_POWER_MANAGEMENT_1);
-	val &= ~(WM8994_SPKOUTL_ENA_MASK);
+	val &= ~(WM8994_SPKOUTL_ENA_MASK | WM8994_SPKOUTR_ENA_MASK);
 	wm8994_write(codec, WM8994_POWER_MANAGEMENT_1, val);
 
 	val = wm8994_read(codec, WM8994_POWER_MANAGEMENT_3);
 	val &= ~(WM8994_MIXOUTLVOL_ENA_MASK | WM8994_MIXOUTRVOL_ENA_MASK |
 		WM8994_MIXOUTL_ENA_MASK | WM8994_MIXOUTR_ENA_MASK |
 		WM8994_SPKRVOL_ENA_MASK | WM8994_SPKLVOL_ENA_MASK);
-	val |= WM8994_SPKLVOL_ENA;
+	val |= (WM8994_SPKLVOL_ENA | WM8994_SPKRVOL_ENA);
 	wm8994_write(codec, WM8994_POWER_MANAGEMENT_3, val);
 
 	/* Speaker Volume Control */
@@ -2207,12 +2241,18 @@ void wm8994_set_playback_speaker(struct snd_soc_codec *codec)
 
 	val = wm8994_read(codec, WM8994_SPEAKER_VOLUME_RIGHT);
 	val &= ~(WM8994_SPKOUTR_MUTE_N_MASK);
+	val |= (WM8994_SPKOUTR_MUTE_N);
 	wm8994_write(codec, WM8994_SPEAKER_VOLUME_RIGHT, val);
 
 	/* Unmute DAC1 left */
 	val = wm8994_read(codec, WM8994_DAC1_LEFT_VOLUME);
 	val &= ~(WM8994_DAC1L_MUTE_MASK);
 	wm8994_write(codec, WM8994_DAC1_LEFT_VOLUME, val);
+
+        /* Unmute DAC1 Right */
+	val = wm8994_read(codec, WM8994_DAC1_RIGHT_VOLUME);
+	val &= ~(WM8994_DAC1R_MUTE_MASK);
+	wm8994_write(codec, WM8994_DAC1_RIGHT_VOLUME, val);
 
 	/* Unmute and volume ctrl RightDAC */
 	val = wm8994_read(codec, WM8994_DAC1_RIGHT_VOLUME);
@@ -2221,22 +2261,24 @@ void wm8994_set_playback_speaker(struct snd_soc_codec *codec)
 
 	val = wm8994_read(codec, WM8994_SPKOUT_MIXERS);
 	val &= ~(WM8994_SPKMIXL_TO_SPKOUTL_MASK |
+		 WM8994_SPKMIXL_TO_SPKOUTR_MASK |                
 		 WM8994_SPKMIXR_TO_SPKOUTL_MASK |
 		 WM8994_SPKMIXR_TO_SPKOUTR_MASK);
-	val |= WM8994_SPKMIXL_TO_SPKOUTL;
+	val |= (WM8994_SPKMIXL_TO_SPKOUTL | WM8994_SPKMIXR_TO_SPKOUTR);
 	wm8994_write(codec, WM8994_SPKOUT_MIXERS, val);
 
 	/* Unmute the DAC path */
 	val = wm8994_read(codec, WM8994_SPEAKER_MIXER);
-	val &= ~(WM8994_DAC1L_TO_SPKMIXL_MASK);
-	val |= WM8994_DAC1L_TO_SPKMIXL;
+	val &= ~(WM8994_DAC1L_TO_SPKMIXL_MASK | WM8994_DAC1R_TO_SPKMIXR_MASK);
+	val |= (WM8994_DAC1L_TO_SPKMIXL | WM8994_DAC1R_TO_SPKMIXR);
 	wm8994_write(codec, WM8994_SPEAKER_MIXER, val);
 
-	/* Eable DAC1 Left and timeslot left */
+	/* Enable DAC1 Left/Right and timeslot left/Right */
 	val = wm8994_read(codec, WM8994_POWER_MANAGEMENT_5);
-	val &= ~(WM8994_DAC1L_ENA_MASK | WM8994_AIF1DAC1R_ENA_MASK |
-		WM8994_AIF1DAC1L_ENA_MASK);
-	val |= (WM8994_AIF1DAC1L_ENA | WM8994_AIF1DAC1R_ENA | WM8994_DAC1L_ENA);
+	val &= ~(WM8994_DAC1L_ENA_MASK | WM8994_DAC1R_ENA_MASK |
+			WM8994_AIF1DAC1R_ENA_MASK | WM8994_AIF1DAC1L_ENA_MASK);
+	val |= (WM8994_AIF1DAC1L_ENA | WM8994_AIF1DAC1R_ENA | 
+                        WM8994_DAC1L_ENA | WM8994_DAC1R_ENA);
 	wm8994_write(codec, WM8994_POWER_MANAGEMENT_5, val);
 
 	/* DRC setting */
@@ -2270,6 +2312,12 @@ void wm8994_set_playback_speaker(struct snd_soc_codec *codec)
 	val |= WM8994_AIF1DAC1L_TO_DAC1L;
 	wm8994_write(codec, WM8994_DAC1_LEFT_MIXER_ROUTING, val);
 
+       /* enable timeslot0 to Right dac */
+	val = wm8994_read(codec, WM8994_DAC1_RIGHT_MIXER_ROUTING);
+	val &= ~(WM8994_AIF1DAC1R_TO_DAC1R_MASK);
+	val |= WM8994_AIF1DAC1R_TO_DAC1R;
+	wm8994_write(codec, WM8994_DAC1_RIGHT_MIXER_ROUTING, val);
+
 #ifdef CONFIG_SND_WM8994_EXTENSIONS
 	wm8994_extensions_playback_speaker();
 #endif
@@ -2279,7 +2327,7 @@ void wm8994_set_playback_speaker(struct snd_soc_codec *codec)
 	val &= ~(WM8994_BIAS_ENA_MASK | WM8994_VMID_SEL_MASK |
 		WM8994_HPOUT1L_ENA_MASK | WM8994_HPOUT1R_ENA_MASK |
 		WM8994_SPKOUTR_ENA_MASK | WM8994_SPKOUTL_ENA_MASK);
-	val |= (WM8994_BIAS_ENA | WM8994_VMID_SEL_NORMAL | WM8994_SPKOUTL_ENA);
+	val |= (WM8994_BIAS_ENA | WM8994_VMID_SEL_NORMAL | WM8994_SPKOUTL_ENA | WM8994_SPKOUTR_ENA);
 	wm8994_write(codec, WM8994_POWER_MANAGEMENT_1, val);
 
 	/* Unmute */
@@ -2326,19 +2374,21 @@ void wm8994_set_playback_speaker_headset(struct snd_soc_codec *codec)
 
 	val = wm8994_read(codec, WM8994_SPEAKER_VOLUME_RIGHT);
 	val &= ~(WM8994_SPKOUTR_MUTE_N_MASK);
+	val |= (WM8994_SPKOUTR_MUTE_N);
 	wm8994_write(codec, WM8994_SPEAKER_VOLUME_RIGHT, val);
 
 	val = wm8994_read(codec, WM8994_SPKOUT_MIXERS);
 	val &= ~(WM8994_SPKMIXL_TO_SPKOUTL_MASK |
+		WM8994_SPKMIXL_TO_SPKOUTR_MASK |                
 		WM8994_SPKMIXR_TO_SPKOUTL_MASK |
 		WM8994_SPKMIXR_TO_SPKOUTR_MASK);
-	val |= WM8994_SPKMIXL_TO_SPKOUTL;
+	val |= (WM8994_SPKMIXL_TO_SPKOUTL | WM8994_SPKMIXR_TO_SPKOUTR);
 	wm8994_write(codec, WM8994_SPKOUT_MIXERS, val);
 
 	/* Unmute the DAC path */
 	val = wm8994_read(codec, WM8994_SPEAKER_MIXER);
-	val &= ~(WM8994_DAC1L_TO_SPKMIXL_MASK);
-	val |= WM8994_DAC1L_TO_SPKMIXL;
+	val &= ~(WM8994_DAC1L_TO_SPKMIXL_MASK | WM8994_DAC1R_TO_SPKMIXR_MASK);
+	val |= (WM8994_DAC1L_TO_SPKMIXL | WM8994_DAC1R_TO_SPKMIXR);
 	wm8994_write(codec, WM8994_SPEAKER_MIXER, val);
 
 	/* Configuring the Digital Paths */
@@ -2421,8 +2471,9 @@ void wm8994_set_playback_speaker_headset(struct snd_soc_codec *codec)
 	val = wm8994_read(codec, WM8994_POWER_MANAGEMENT_3);
 	val &= ~(WM8994_MIXOUTLVOL_ENA_MASK | WM8994_MIXOUTRVOL_ENA_MASK |
 		WM8994_MIXOUTL_ENA_MASK | WM8994_MIXOUTR_ENA_MASK |
-		WM8994_SPKLVOL_ENA_MASK);
-	val |= (WM8994_MIXOUTL_ENA | WM8994_MIXOUTR_ENA | WM8994_SPKLVOL_ENA);
+		WM8994_SPKLVOL_ENA_MASK | WM8994_SPKRVOL_ENA_MASK);
+	val |= (WM8994_MIXOUTL_ENA | WM8994_MIXOUTR_ENA | 
+                WM8994_SPKLVOL_ENA | WM8994_SPKRVOL_ENA);
 	wm8994_write(codec, WM8994_POWER_MANAGEMENT_3, val);
 
 	/* DC Servo */
@@ -4050,7 +4101,7 @@ void wm8994_disable_fmradio_path(struct snd_soc_codec *codec,
 	case FMR_SPK:
 		/* Disable end point for preventing pop up noise */
 		val = wm8994_read(codec, WM8994_POWER_MANAGEMENT_1);
-		val &= ~(WM8994_SPKOUTL_ENA_MASK | WM8994_HPOUT1L_ENA_MASK |
+		val &= ~(WM8994_SPKOUTL_ENA_MASK| WM8994_SPKOUTR_ENA_MASK | WM8994_HPOUT1L_ENA_MASK |
 			WM8994_HPOUT1R_ENA_MASK);
 		wm8994_write(codec, WM8994_POWER_MANAGEMENT_1 , val);
 
@@ -4069,6 +4120,7 @@ void wm8994_disable_fmradio_path(struct snd_soc_codec *codec,
 		/* Disable SPKMIX to SPKOUT */
 		val = wm8994_read(codec, WM8994_SPKOUT_MIXERS);
 		val &= ~(WM8994_SPKMIXL_TO_SPKOUTL_MASK |
+                        WM8994_SPKMIXL_TO_SPKOUTR_MASK |
 			WM8994_SPKMIXR_TO_SPKOUTL_MASK |
 			WM8994_SPKMIXR_TO_SPKOUTR_MASK);
 		wm8994_write(codec, WM8994_SPKOUT_MIXERS, val);
@@ -4084,7 +4136,7 @@ void wm8994_disable_fmradio_path(struct snd_soc_codec *codec,
 
 		/* cut off the power supply in analog domain */
 		val = wm8994_read(codec, WM8994_POWER_MANAGEMENT_1);
-		val &= ~(WM8994_SPKOUTL_ENA_MASK | WM8994_HPOUT1L_ENA_MASK |
+		val &= ~(WM8994_SPKOUTL_ENA_MASK | WM8994_SPKOUTR_ENA_MASK | WM8994_HPOUT1L_ENA_MASK |
 			WM8994_HPOUT1R_ENA_MASK);
 		wm8994_write(codec, WM8994_POWER_MANAGEMENT_1 , val);
 
@@ -4541,7 +4593,7 @@ void wm8994_set_fmradio_speaker(struct snd_soc_codec *codec)
 	wm8994_write(codec, WM8994_POWER_MANAGEMENT_2 , val);
 
 	val = wm8994_read(codec, WM8994_POWER_MANAGEMENT_3);
-	val |= WM8994_SPKLVOL_ENA;
+	val |= WM8994_SPKLVOL_ENA | WM8994_SPKRVOL_ENA;
 	wm8994_write(codec, WM8994_POWER_MANAGEMENT_3, val);
 
 	/* enable power in digital domain */
@@ -4565,22 +4617,29 @@ void wm8994_set_fmradio_speaker(struct snd_soc_codec *codec)
 	val |= WM8994_SPKOUT_VU | WM8994_SPKOUTL_MUTE_N;
 	wm8994_write(codec, WM8994_SPEAKER_VOLUME_LEFT, val);
 
+        /* Unmute SPKOUTR */
+	val = wm8994_read(codec, WM8994_SPEAKER_VOLUME_RIGHT);
+	val |= WM8994_SPKOUT_VU | WM8994_SPKOUTR_MUTE_N;
+	wm8994_write(codec, WM8994_SPEAKER_VOLUME_RIGHT, val);
+
 	wm8994_set_fmradio_common(codec);
 
 	wm8994_set_codec_gain(codec, FMRADIO_MODE, FMRADIO_SPK);
 
-	/* Enable SPKMIXL to SPKOUTL */
+	/* Enable SPKMIXL/R to SPKOUTL/R */
 	val = wm8994_read(codec, WM8994_SPKOUT_MIXERS);
-	val &= ~(WM8994_SPKMIXR_TO_SPKOUTL_MASK |
+	val &= ~(WM8994_SPKMIXL_TO_SPKOUTL_MASK |
+                WM8994_SPKMIXL_TO_SPKOUTR_MASK |
+                WM8994_SPKMIXR_TO_SPKOUTL_MASK |
 		WM8994_SPKMIXR_TO_SPKOUTR_MASK);
-	val |= (WM8994_SPKMIXL_TO_SPKOUTL);
+	val |= (WM8994_SPKMIXL_TO_SPKOUTL | WM8994_SPKMIXR_TO_SPKOUTR);
 	wm8994_write(codec, WM8994_SPKOUT_MIXERS, val);
 
-	/* Enable DAC1L to SPKMIXL */
+	/* Enable DAC1L/R to SPKMIXL/R */
 	val = wm8994_read(codec, WM8994_SPEAKER_MIXER);
 	val &= ~(WM8994_MIXINL_TO_SPKMIXL_MASK | WM8994_MIXINR_TO_SPKMIXR_MASK |
-		WM8994_DAC1R_TO_SPKMIXR_MASK);
-	val |= (WM8994_DAC1L_TO_SPKMIXL);
+		WM8994_DAC1L_TO_SPKMIXL_MASK | WM8994_DAC1R_TO_SPKMIXR_MASK);
+	val |= (WM8994_DAC1L_TO_SPKMIXL | WM8994_DAC1R_TO_SPKMIXR);
 	wm8994_write(codec, WM8994_SPEAKER_MIXER, val);
 
 	/* Soft unmute settings */
@@ -4655,9 +4714,9 @@ void wm8994_set_fmradio_speaker_headset_mix(struct snd_soc_codec *codec)
 	wm8994_write(codec, WM8994_POWER_MANAGEMENT_2 , val);
 
 	val = wm8994_read(codec, WM8994_POWER_MANAGEMENT_3);
-	val &= ~WM8994_SPKRVOL_ENA_MASK;
+	val &= ~(WM8994_SPKLVOL_ENA_MASK | WM8994_SPKRVOL_ENA_MASK);
 	val |= (WM8994_MIXOUTLVOL_ENA | WM8994_MIXOUTRVOL_ENA |
-		WM8994_MIXOUTL_ENA | WM8994_MIXOUTR_ENA | WM8994_SPKLVOL_ENA);
+		WM8994_MIXOUTL_ENA | WM8994_MIXOUTR_ENA | WM8994_SPKLVOL_ENA | WM8994_SPKRVOL_ENA);
 	wm8994_write(codec, WM8994_POWER_MANAGEMENT_3, val);
 
 	/* enable power in digital domain */
@@ -4709,9 +4768,11 @@ void wm8994_set_fmradio_speaker_headset_mix(struct snd_soc_codec *codec)
 
 	/* enable SPKMIXL to SPKOUTL */
 	val = wm8994_read(codec, WM8994_SPKOUT_MIXERS);
-	val &= ~(WM8994_SPKMIXR_TO_SPKOUTL_MASK |
+	val &= ~(WM8994_SPKMIXL_TO_SPKOUTL_MASK |
+                WM8994_SPKMIXL_TO_SPKOUTR_MASK |
+                WM8994_SPKMIXR_TO_SPKOUTL_MASK |
 		WM8994_SPKMIXR_TO_SPKOUTR_MASK);
-	val |= WM8994_SPKMIXL_TO_SPKOUTL;
+	val |= (WM8994_SPKMIXL_TO_SPKOUTL | WM8994_SPKMIXR_TO_SPKOUTR);
 	wm8994_write(codec, WM8994_SPKOUT_MIXERS, val);
 
 	/* unmute MIXOUTL */
@@ -4728,6 +4789,11 @@ void wm8994_set_fmradio_speaker_headset_mix(struct snd_soc_codec *codec)
 	val = wm8994_read(codec, WM8994_SPEAKER_VOLUME_LEFT);
 	val |= WM8994_SPKOUT_VU | WM8994_SPKOUTL_MUTE_N;
 	wm8994_write(codec, WM8994_SPEAKER_VOLUME_LEFT, val);
+
+        /* unmute SPKOUTR */
+	val = wm8994_read(codec, WM8994_SPEAKER_VOLUME_RIGHT);
+	val |= WM8994_SPKOUT_VU | WM8994_SPKOUTR_MUTE_N;
+	wm8994_write(codec, WM8994_SPEAKER_VOLUME_RIGHT, val);
 
 	/* soft unmute settings */
 	wm8994_write(codec, WM8994_DAC_SOFTMUTE, WM8994_DAC_SOFTMUTEMODE |
@@ -4862,12 +4928,12 @@ struct gain_info_t fmradio_gain_table[FMRADIO_GAIN_NUM] = {
 		.mode = FMRADIO_SPK,
 		.reg  = WM8994_SPEAKER_VOLUME_LEFT,	/* 26h */
 		.mask = WM8994_SPKOUTL_VOL_MASK,
-		.gain = WM8994_SPKOUT_VU | 0x3E
+                .gain = WM8994_SPKOUT_VU | 0x3E
 	}, {
 		.mode = FMRADIO_SPK,
 		.reg  = WM8994_SPEAKER_VOLUME_RIGHT,	/* 27h */
 		.mask = WM8994_SPKOUTR_VOL_MASK,
-		.gain = WM8994_SPKOUT_VU | 0x3E
+                .gain = WM8994_SPKOUT_VU | 0x3E
 	}, {
 		.mode = FMRADIO_SPK,
 		.reg  = WM8994_CLASSD,			/* 25h */
@@ -4932,12 +4998,12 @@ struct gain_info_t fmradio_gain_table[FMRADIO_GAIN_NUM] = {
 		.mode = FMRADIO_SPK_HP,
 		.reg  = WM8994_SPEAKER_VOLUME_LEFT,	/* 26h */
 		.mask = WM8994_SPKOUTL_VOL_MASK,
-		.gain = WM8994_SPKOUT_VU | 0x3E
+                .gain = WM8994_SPKOUT_VU | 0x3E
 	}, {
 		.mode = FMRADIO_SPK_HP,
 		.reg  = WM8994_SPEAKER_VOLUME_RIGHT,	/* 27h */
 		.mask = WM8994_SPKOUTR_VOL_MASK,
-		.gain = WM8994_SPKOUT_VU | 0x3E
+                .gain = WM8994_SPKOUT_VU | 0x3E
 	},
 
 };
