@@ -382,6 +382,9 @@ struct fimc_control {
 	struct device			*dev;
 	int				irq;
 
+#ifdef CONFIG_SAMSUNG_YPG1
+	int	vt_mode;
+#endif
 	/* v4l2 related */
 	struct video_device		*vd;
 	struct v4l2_device		v4l2_dev;
