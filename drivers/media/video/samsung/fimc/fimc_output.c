@@ -153,7 +153,7 @@ int fimc_outdev_resume_dma(struct fimc_control *ctrl, struct fimc_ctx *ctx)
 	win->other_mem_addr = ctx->dst[1].base[FIMC_ADDR_Y];
 	win->other_mem_size = ctx->dst[1].length[FIMC_ADDR_Y];
 
-#ifdef CONFIG_MACH_ARIES
+#ifdef CONFIG_SAMSUNG_GALAXYS
 	/* Update WIN size */
 	var.xres_virtual = fimd_rect.width;
 	var.yres_virtual = fimd_rect.height;
@@ -1750,7 +1750,7 @@ int fimc_streamon_output(void *fh)
 	if (ctx->overlay.mode == FIMC_OVLY_NOT_FIXED)
 		ctx->overlay.mode = FIMC_OVLY_MODE;
 
-#ifdef CONFIG_MACH_ARIES
+#ifdef CONFIG_SAMSUNG_GALAXYS
 	/* initialize destination buffers */
 	if (ctx->overlay.mode == FIMC_OVLY_DMA_AUTO) {
 		ret = fimc_outdev_set_dst_buf(ctrl, ctx);
@@ -1820,7 +1820,7 @@ int fimc_streamoff_output(void *fh)
 
 	if (ctrl->out->last_ctx == ctx->ctx_num)
 		ctrl->out->last_ctx = -1;
-#ifdef CONFIG_MACH_ARIES
+#ifdef CONFIG_SAMSUNG_GALAXYS
 	if (ctx->overlay.mode == FIMC_OVLY_DMA_AUTO) {
 		ctrl->mem.curr = ctx->dst[0].base[FIMC_ADDR_Y];
 
@@ -2041,7 +2041,7 @@ static int fimc_qbuf_output_dma_auto(struct fimc_control *ctrl,
 		win->other_mem_addr = ctx->dst[1].base[FIMC_ADDR_Y];
 		win->other_mem_size = ctx->dst[1].length[FIMC_ADDR_Y];
 
-#ifdef CONFIG_MACH_ARIES
+#ifdef CONFIG_SAMSUNG_GALAXYS
 		/* Update WIN size */
 		var.xres_virtual = fimd_rect.width;
 		var.yres_virtual = fimd_rect.height;

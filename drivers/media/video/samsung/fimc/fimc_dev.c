@@ -1074,7 +1074,7 @@ static int fimc_release(struct file *filp)
 	struct mm_struct *mm = current->mm;
 	struct fimc_ctx *ctx;
 	int ret = 0, i;
-#ifdef CONFIG_MACH_ARIES
+#ifdef CONFIG_SAMSUNG_GALAXYS
 	ctx = &ctrl->out->ctx[ctx_id];
 #endif
 
@@ -1138,7 +1138,7 @@ static int fimc_release(struct file *filp)
 				ctx->src[i].state = VIDEOBUF_IDLE;
 				ctx->src[i].flags = V4L2_BUF_FLAG_MAPPED;
 			}
-#ifdef CONFIG_MACH_ARIES
+#ifdef CONFIG_SAMSUNG_GALAXYS
 			if (ctx->overlay.mode == FIMC_OVLY_DMA_AUTO) {
 #else
 			if ((ctx->overlay.mode == FIMC_OVLY_DMA_AUTO ||
@@ -1202,7 +1202,7 @@ static int fimc_release(struct file *filp)
 			filp->private_data = NULL;
 		}
 	}
-#ifdef CONFIG_MACH_ARIES
+#ifdef CONFIG_SAMSUNG_GALAXYS
 	/*
 	 * it remain afterimage when I play movie using overlay and exit
 	 */
