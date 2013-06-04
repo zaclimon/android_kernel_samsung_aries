@@ -182,7 +182,8 @@ static int aries_notifier_call(struct notifier_block *this,
 {
 	int mode = REBOOT_MODE_NONE;
 
-	if ((code == SYS_RESTART) && _cmd) {
+	if (code == SYS_RESTART) {
+	    if (_cmd) {
 		if (!strcmp((char *)_cmd, "arm11_fota"))
 			mode = REBOOT_MODE_ARM11_FOTA;
 		else if (!strcmp((char *)_cmd, "arm9_fota"))
@@ -198,6 +199,7 @@ static int aries_notifier_call(struct notifier_block *this,
 			mode = REBOOT_MODE_DOWNLOAD;
 		else
 			mode = REBOOT_MODE_NONE;
+	    }
 	}
 	if (code != SYS_POWER_OFF) {
 		if (sec_set_param_value) {
