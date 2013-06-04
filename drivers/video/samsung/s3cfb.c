@@ -50,6 +50,8 @@
 #include <linux/delay.h>
 #endif
 
+#define BOOT_FB_WINDOW	0
+
 #if (CONFIG_FB_S3C_NUM_OVLY_WIN >= CONFIG_FB_S3C_DEFAULT_WINDOW)
 #error "FB_S3C_NUM_OVLY_WIN should be less than FB_S3C_DEFAULT_WINDOW"
 #endif
@@ -1059,6 +1061,12 @@ static int __devinit s3cfb_probe(struct platform_device *pdev)
 #ifdef CONFIG_FB_S3C_MDNIE
 	mDNIe_Mode_Set();
 #endif
+
+	if (pdata->default_win != BOOT_FB_WINDOW)	{
+		dev_warn(fbdev->dev, "closing bootloader FIMD window 0\n", BOOT_FB_WINDOW);
+		s3cfb_set_window(fbdev, BOOT_FB_WINDOW, 0);
+	}
+
 	s3cfb_set_window(fbdev, pdata->default_win, 1);
 
 	s3cfb_set_alpha_value_width(fbdev, pdata->default_win);
