@@ -34,7 +34,7 @@ const char *gkernel_sec_build_info_date_time[] = {
 #define DEBUG_LEVEL_RD	0
 #define DEBUG_LEVEL_WR	1
 static int debuglevel;
-int checkTSPKEYdebuglevel;
+int checkTSPKEYdebuglevel = KERNEL_SEC_DEBUG_LEVEL_LOW;
 EXPORT_SYMBOL(checkTSPKEYdebuglevel);
 
 sched_log_t gExcpTaskLog[SCHED_LOG_MAX];
