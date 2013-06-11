@@ -76,7 +76,6 @@ REC_BOOT_MAGIC="0x5EC0B007" # Must be in caps.
 
 if busybox grep -q bootmode=2 /proc/cmdline ; then
 	# decoy recovery boot - clears bootmode and sets REC_BOOT_MAGIC
-        bml_over_mtd dump recovery 102 reservoir 2004 /stage1/recovery.bin
 	/stage1/kexec --load-hardboot --mem-min=0x50000000 /stage1/recovery.bin
 	/system/bin/sync
 	/stage1/kexec -e
