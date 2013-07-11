@@ -566,7 +566,7 @@ int scsi_cmd_ioctl(struct request_queue *q, struct gendisk *bd_disk, fmode_t mod
 {
 	int err;
 
-	if (!q || blk_get_queue(q))
+	if (!q)
 		return -ENXIO;
 
 	switch (cmd) {
