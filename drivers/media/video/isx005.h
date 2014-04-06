@@ -641,21 +641,21 @@ isx005_short_t isx005_init_reg[] =
 // ISX005-0 (FW 2005)
 //   Parallel    15fps
 //        PLL   432MHz
-//        DCK  Preview : 54MHz,Capture : 72MHz
+//        DCK  Preview : 72MHz,Capture : 72MHz
 //
 // inifile
 // size address data
 //
 {0x000b, 0x0004, 1},		// PLL_CKSEL
 {0x02C7, 0x0001, 1},		// SRCCK_DIV
-{0x02B8, 0x0010, 1},		// VIF_CLKCONFIG1
-{0x02B9, 0x0011, 1},		// VIF_CLKCONFIG2   (Preview - 54MHz)
+{0x02B8, 0x0030, 1},		// VIF_CLKCONFIG1
+{0x02B9, 0x0030, 1},		// VIF_CLKCONFIG2   (Preview - 72MHz)
 {0x02BA, 0x0030, 1},		// VIF_CLKCONFIG3
 {0x02BB, 0x0030, 1},		// VIF_CLKCONFIG4
-{0x02BC, 0x0011, 1},		// VIF_CLKCONFIG5    (CAP - 54MHz)
+{0x02BC, 0x0030, 1},		// VIF_CLKCONFIG5    (CAP - 72MHz)
 {0x02BD, 0x0012, 1},		// VIF_CLKCONFIG6
 {0x02BE, 0x0013, 1},		// VIF_CLKCONFIG7
-{0x02C0, 0x0011, 1},		// VIF_CLKCONFIG9    (Interleave CAP - 54MHz)
+{0x02C0, 0x0030, 1},		// VIF_CLKCONFIG9    (Interleave CAP - 72MHz)
 {0x02C1, 0x0030, 1},		// VIF_CLKCONFIG10
 {0x4C10, 0x0011, 1},		// VIF_CLKCONFIG13
 {0x0348, 0x0030, 1},		// VIF_CLKCONFIG_HD1
