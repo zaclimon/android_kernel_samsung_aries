@@ -106,8 +106,6 @@ enum isx005_oprmode {
 };
 
 enum isx005_frame_size {
-	ISX005_PREVIEW_QCIF = 0, /*  176x144 */
-	ISX005_PREVIEW_QVGA,     /*  320x240 */
 	ISX005_PREVIEW_592,      /*  592x480 */
 	ISX005_PREVIEW_WVGA,     /*  800x480 */
 	ISX005_PREVIEW_SVGA,     /*  800x600 */
@@ -130,8 +128,6 @@ struct isx005_enum_framesize {
 };
 
 static struct isx005_enum_framesize isx005_framesize_list[] = {
-	{ ISX005_OPRMODE_VIDEO, ISX005_PREVIEW_QCIF,   176,  144 },
-	{ ISX005_OPRMODE_VIDEO, ISX005_PREVIEW_QVGA,   320,  240 },
 	{ ISX005_OPRMODE_VIDEO, ISX005_PREVIEW_592,    592,  480 },
 	{ ISX005_OPRMODE_VIDEO, ISX005_PREVIEW_WVGA,   800,  480 },
 	{ ISX005_OPRMODE_VIDEO, ISX005_PREVIEW_SVGA,   800,  600 },
@@ -965,14 +961,6 @@ static int isx005_set_preview_size(struct v4l2_subdev *sd)
 	isx005_msg(&client->dev, "[Driver] %s: index = %d\n", __func__, index);
 
 	switch (index) {
-		case ISX005_PREVIEW_QCIF:
-			err = isx005_i2c_write_multi(client, 0x0022, 0x00B0, 2); // HSIZE_MONI - 176
-			err = isx005_i2c_write_multi(client, 0x0028, 0x0090, 2); // VSIZE_MONI - 144
-			break;
-		case ISX005_PREVIEW_QVGA:
-			err = isx005_i2c_write_multi(client, 0x0022, 0x0140, 2); // HSIZE_MONI - 320
-			err = isx005_i2c_write_multi(client, 0x0028, 0x00F0, 2); // VSIZE_MONI - 240
-			break;
 		case ISX005_PREVIEW_592:
 			err = isx005_i2c_write_multi(client, 0x0022, 0x0250, 2); // HSIZE_MONI - 592
 			err = isx005_i2c_write_multi(client, 0x0028, 0x01E0, 2); // VSIZE_MONI - 480
