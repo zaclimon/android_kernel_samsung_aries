@@ -26,6 +26,9 @@ obj-$(CONFIG_SAMSUNG_CLKSRC)	+= clock-clksrc.o
 obj-$(CONFIG_SAMSUNG_IRQ_UART)	+= irq-uart.o
 obj-$(CONFIG_SAMSUNG_IRQ_VIC_TIMER) += irq-vic-timer.o
 
+# EFS
+obj-$(CONFIG_SAMSUNG_EFS)	+= efs.o
+
 # ADC
 
 obj-$(CONFIG_S3C_ADC)	+= adc.o

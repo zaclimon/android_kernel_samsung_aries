@@ -103,12 +103,22 @@ Codec Output Path BIT
 #define FMRADIO_SPK_HP		(0x01 << 3)
 
 #define PLAYBACK_GAIN_CDMA_NUM 48
-#define PLAYBACK_GAIN_NUM 43
+
+#ifdef CONFIG_SAMSUNG_YPG1
+#define PLAYBACK_GAIN_NUM 48
+#else
+#define PLAYBACK_GAIN_NUM 45
+#endif
 
 #define VOICECALL_GAIN_NUM 38
 #define RECORDING_GAIN_NUM 32
 #define GAIN_CODE_NUM 13
-#define FMRADIO_GAIN_NUM	34
+
+#ifdef CONFIG_SAMSUNG_YPG1
+#define FMRADIO_GAIN_NUM 36
+#else
+#define FMRADIO_GAIN_NUM 34
+#endif
 
 #define DCS_NUM 5
 

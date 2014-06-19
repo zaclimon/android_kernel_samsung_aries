@@ -23,7 +23,11 @@
 #include <linux/rtc.h>
 #include <mach/gpio.h>
 #include <plat/gpio-cfg.h>
+#ifdef CONFIG_SAMSUNG_YPG1
+#include <mach/gpio-ypg1.h>
+#else
 #include <mach/gpio-p1.h>
+#endif
 #include <mach/regs-clock.h>
 
 #include <plat/regs-fimc.h>
@@ -4536,13 +4540,15 @@ static const struct v4l2_subdev_ops isx005_ops = {
 };
 
 #ifdef FACTORY_CHECK
+#ifndef CONFIG_SAMSUNG_YPG1
 extern ssize_t camtype_show(struct device *dev, struct device_attribute *attr, char *buf);
 extern ssize_t camtype_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t size);
 
 static DEVICE_ATTR(camtype, 0644, camtype_show, camtype_store);
 
+extern struct device *sec_cam_dev;
+#endif
 extern struct class *sec_class;
-extern struct device *sec_cam_dev ;
 #endif
 
 /*
@@ -4595,7 +4601,7 @@ static int isx005_probe(struct i2c_client *client,
 
 	isx005_msg(&client->dev, "3MP camera ISX005 loaded.\n");
 
-#ifdef FACTORY_CHECK
+#if defined (FACTORY_CHECK) && !defined (CONFIG_SAMSUNG_YPG1)
 	{
 		if (sec_cam_dev == NULL)
 		{

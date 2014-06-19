@@ -17,7 +17,11 @@
 
 #include <asm/mach-types.h>
 
+#ifdef CONFIG_SAMSUNG_YPG1
+#include <mach/gpio-ypg1.h>
+#else
 #include <mach/gpio-aries.h>
+#endif
 
 #include "aries.h"
 

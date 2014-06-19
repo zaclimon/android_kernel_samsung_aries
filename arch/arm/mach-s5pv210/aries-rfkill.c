@@ -31,7 +31,11 @@
 #include <linux/interrupt.h>
 #include <linux/init.h>
 #include <mach/gpio.h>
+#ifdef CONFIG_SAMSUNG_YPG1
+#include <mach/gpio-ypg1.h>
+#else
 #include <mach/gpio-aries.h>
+#endif
 #include <mach/hardware.h>
 #include <plat/gpio-cfg.h>
 #include <plat/irqs.h>

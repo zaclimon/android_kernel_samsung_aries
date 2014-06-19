@@ -41,7 +41,10 @@
 #if defined(CONFIG_FB_S3C_CMC623)
 #include "tune_cmc623.h"
 #endif
-
+#if defined (CONFIG_FB_S3C_NT35580)
+#include <linux/nt35580.h>
+struct s5p_lcd *g_lcd;
+#endif
 
 
 static struct resource *s3c_mdnie_mem;
@@ -94,6 +97,13 @@ typedef enum
 	mDNIe_NAVI,
 #ifdef CONFIG_MACH_ARIES
 	mDNIe_BYPASS_MODE,
+#ifdef CONFIG_SAMSUNG_YPG1
+	mDNIe_DMB_MODE,
+	mDNIe_DMB_WARM_MODE,
+	mDNIe_DMB_COLD_MODE,
+	mDNIe_GALLERY,
+	mDNIe_VT_MODE,
+#endif
 #else // CONFIG_MACH_P1
 	mDNIe_DMB_MODE,
 	mDNIe_VT_MODE,

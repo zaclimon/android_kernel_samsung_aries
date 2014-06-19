@@ -15,6 +15,14 @@ config PLAT_SAMSUNG
 
 if PLAT_SAMSUNG
 
+# general options
+
+config SAMSUNG_EFS
+	bool "Samsung EFS support"
+	default n
+	help
+	  Support for holding EFS parameters in the kernel
+
 # boot configurations
 
 comment "Boot options"

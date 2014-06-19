@@ -385,7 +385,7 @@ struct fimc_control {
 	wait_queue_head_t		wq;
 	struct device			*dev;
 	int				irq;
-#ifdef CONFIG_MACH_P1
+#if defined (CONFIG_MACH_P1) || defined (CONFIG_SAMSUNG_YPG1)
 	int	vt_mode;
 #endif
 	/* v4l2 related */

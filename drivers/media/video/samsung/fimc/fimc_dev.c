@@ -151,9 +151,9 @@ static inline u32 fimc_irq_out_single_buf(struct fimc_control *ctrl,
 		ctrl->out->idxs.active.ctx = -1;
 		ctrl->out->idxs.active.idx = -1;
 		ctx->status = FIMC_STREAMOFF;
-#ifdef CONFIG_MACH_ARIES
+#if defined (CONFIG_MACH_ARIES) && !defined (CONFIG_SAMSUNG_YPG1)
 		ctrl->status = FIMC_STREAMOFF;
-#else // CONFIG_MACH_P1
+#else // CONFIG_MACH_P1/CONFIG_SAMSUNG_YPG1
 		ctrl->status = FIMC_STREAMON_IDLE;
 #endif
 
@@ -263,9 +263,9 @@ static inline u32 fimc_irq_out_dma(struct fimc_control *ctrl,
 		ctrl->out->idxs.active.ctx = -1;
 		ctrl->out->idxs.active.idx = -1;
 		ctx->status = FIMC_STREAMOFF;
-#ifdef CONFIG_MACH_ARIES
+#if defined (CONFIG_MACH_ARIES) && !defined (CONFIG_SAMSUNG_YPG1)
 		ctrl->status = FIMC_STREAMOFF;
-#else // CONFIG_MACH_P1
+#else // CONFIG_MACH_P1/CONFIG_SAMSUNG_YPG1
 		ctrl->status = FIMC_STREAMON_IDLE;
 #endif
 		return wakeup;
@@ -644,10 +644,10 @@ int fimc_mmap_out_dst(struct file *filp, struct vm_area_struct *vma, u32 idx)
 
 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
 	vma->vm_flags |= VM_RESERVED;
-#ifdef CONFIG_MACH_ARIES
+#if defined (CONFIG_MACH_ARIES) && !defined (CONFIG_SAMSUNG_YPG1)
 	pfn = __phys_to_pfn(ctrl->out->ctx[ctx_id].dst[idx].base[0]);
-#else // CONFIG_MACH_P1
-#if defined (CONFIG_SAMSUNG_P1) || defined (CONFIG_SAMSUNG_P1C)
+#else // CONFIG_MACH_P1/CONFIG_SAMSUNG_YPG1
+#if defined (CONFIG_SAMSUNG_P1) || defined (CONFIG_SAMSUNG_P1C) || defined (CONFIG_SAMSUNG_YPG1)
 	if (ctrl->out->ctx[ctx_id].dst[idx].base[0])
 		pfn = __phys_to_pfn(ctrl->out->ctx[ctx_id].dst[idx].base[0]);
 	else
@@ -751,12 +751,18 @@ static u32 fimc_poll(struct file *filp, poll_table *wait)
 #include <mach/gpio-p1.h>
 #include <linux/delay.h>
 #endif
+#ifdef CONFIG_SAMSUNG_YPG1
+#include <mach/gpio.h>
+#include <plat/gpio-cfg.h>
+#include <mach/gpio-ypg1.h>
+#include <linux/delay.h>
+#endif
 static
 ssize_t fimc_read(struct file *filp, char *buf, size_t count, loff_t *pos)
 {
 
 	int err = 0;
-#ifdef CONFIG_MACH_P1
+#if defined (CONFIG_MACH_P1) || defined (CONFIG_SAMSUNG_YPG1)
 	printk("%s, for factory test\n", __func__);
 
 
@@ -773,7 +779,7 @@ static
 ssize_t fimc_write(struct file *filp, const char *b, size_t c, loff_t *offset)
 {
 	int err = 0;
-#ifdef CONFIG_MACH_P1
+#if defined (CONFIG_MACH_P1) || defined (CONFIG_SAMSUNG_YPG1)
 	int i = 0;
 
 	printk("%s, for factory test\n", __func__);
@@ -1074,7 +1080,7 @@ static int fimc_release(struct file *filp)
 	struct mm_struct *mm = current->mm;
 	struct fimc_ctx *ctx;
 	int ret = 0, i;
-#ifdef CONFIG_MACH_ARIES
+#if defined (CONFIG_MACH_ARIES) && !defined (CONFIG_SAMSUNG_YPG1)
 	ctx = &ctrl->out->ctx[ctx_id];
 #endif
 
@@ -1109,7 +1115,7 @@ static int fimc_release(struct file *filp)
 	}
 
 	if (ctrl->out) {
-#ifdef CONFIG_MACH_P1
+#if defined (CONFIG_MACH_P1) || defined (CONFIG_SAMSUNG_YPG1)
 		ctx = &ctrl->out->ctx[ctx_id];
 #endif
 		if (ctx->status != FIMC_STREAMOFF) {
@@ -1138,7 +1144,7 @@ static int fimc_release(struct file *filp)
 				ctx->src[i].state = VIDEOBUF_IDLE;
 				ctx->src[i].flags = V4L2_BUF_FLAG_MAPPED;
 			}
-#ifdef CONFIG_MACH_ARIES
+#if defined (CONFIG_MACH_ARIES) && !defined (CONFIG_SAMSUNG_YPG1)
 			if (ctx->overlay.mode == FIMC_OVLY_DMA_AUTO) {
 #else
 			if ((ctx->overlay.mode == FIMC_OVLY_DMA_AUTO ||
@@ -1172,11 +1178,11 @@ static int fimc_release(struct file *filp)
 							__func__);
 			}
 		}
-#ifdef CONFIG_MACH_ARIES
+#if defined (CONFIG_MACH_ARIES) && !defined (CONFIG_SAMSUNG_YPG1)
 		ctrl->ctx_busy[ctx_id] = 0;
 #endif
 		memset(ctx, 0x00, sizeof(struct fimc_ctx));
-#ifdef CONFIG_MACH_P1
+#if defined (CONFIG_MACH_P1) || defined (CONFIG_SAMSUNG_YPG1)
 
 		ctx->ctx_num = ctx_id;
 		ctx->overlay.mode = FIMC_OVLY_NOT_FIXED;
@@ -1202,7 +1208,7 @@ static int fimc_release(struct file *filp)
 			filp->private_data = NULL;
 		}
 	}
-#ifdef CONFIG_MACH_ARIES
+#if defined (CONFIG_MACH_ARIES) && !defined (CONFIG_SAMSUNG_YPG1)
 	/*
 	 * it remain afterimage when I play movie using overlay and exit
 	 */
@@ -1221,7 +1227,7 @@ static int fimc_release(struct file *filp)
 		ctrl->fb.is_enable = 0;
 	}
 #endif
-#ifdef CONFIG_MACH_P1
+#if defined (CONFIG_MACH_P1) || defined (CONFIG_SAMSUNG_YPG1)
 	ctrl->ctx_busy[ctx_id] = 0;
 #endif
 	mutex_unlock(&ctrl->lock);

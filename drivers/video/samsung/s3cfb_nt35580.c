@@ -28,18 +28,38 @@
 #include <plat/regs-fb.h>
 #include <linux/earlysuspend.h>
 
+#if defined(CONFIG_FB_S3C_MDNIE)
+extern void init_mdnie_class(struct s5p_lcd *lcd);
+#endif
+
 #define NT35580_POWERON_DELAY	150
 
-struct s5p_lcd {
-	int ldi_enable;
-	int bl;
-	struct mutex lock;
-	struct device *dev;
-	struct spi_device *g_spi;
-	struct s5p_tft_panel_data *data;
-	struct backlight_device *bl_dev;
-	struct early_suspend early_suspend;
-};
+#define MAX_BRIGHTNESS_LEVEL 255
+#define LOW_BRIGHTNESS_LEVEL 11//30
+#define MAX_BACKLIGHT_VALUE 213//240
+#define LOW_BACKLIGHT_VALUE_SONY 11//7//35
+#define DIM_BACKLIGHT_VALUE_SONY 5//15	hw requeset cause by backlight ic issue on lowest level
+/*For hitachi lcd*/
+#define MAX_BACKLIGHT_VALUE_HITACHI 181//216
+#define DEF_BACKLIGHT_VALUE_HITACHI  76//91
+#define LOW_BACKLIGHT_VALUE_HITACHI  31//29
+#define DIM_BACKLIGHT_VALUE_HITACHI   5//17
+
+typedef enum
+{
+	mDNIe_UI_MODE,
+	mDNIe_VIDEO_MODE,
+	mDNIe_VIDEO_WARM_MODE,
+	mDNIe_VIDEO_COLD_MODE,
+	mDNIe_CAMERA_MODE,
+	mDNIe_NAVI,
+	mDNIe_DMB_MODE,
+	mDNIe_DMB_WARM_MODE,
+	mDNIe_DMB_COLD_MODE,
+	mDNIe_GALLERY,
+	mDNIe_BYPASS_MODE,
+	mDNIe_VT_MODE,
+}Lcd_mDNIe_UI;
 
 static int nt35580_spi_write_driver(struct s5p_lcd *lcd, u16 reg)
 {
@@ -80,6 +100,110 @@ static void nt35580_panel_send_sequence(struct s5p_lcd *lcd,
 		}
 }
 
+#if defined(CONFIG_FB_S3C_MDNIE)
+extern Lcd_mDNIe_UI current_mDNIe_UI;
+
+void on_cabc(struct s5p_lcd *lcd)
+{
+	struct s5p_tft_panel_data *pdata = lcd->data;
+	printk(KERN_INFO "on_cabc ...acl = [%d]....ldi...[%d]\n", lcd->acl_enable,lcd->ldi_enable);
+
+	if (lcd->acl_enable == 1 && lcd->ldi_enable == 1) {
+		printk(KERN_INFO "mDNIe_MODE = %d\n", current_mDNIe_UI);
+
+		switch (current_mDNIe_UI) {
+		case mDNIe_UI_MODE:
+			if(lcd->cur_cabc != CABC_UI)
+			{
+				nt35580_panel_send_sequence(lcd, pdata->seq_cabc_ui);
+				lcd->cur_cabc = CABC_UI;
+				printk(KERN_INFO "set CABC_UI \n");
+			}
+			 break;
+		case mDNIe_VIDEO_MODE:
+		case mDNIe_VIDEO_WARM_MODE:
+		case mDNIe_VIDEO_COLD_MODE:
+		case mDNIe_CAMERA_MODE:
+		case mDNIe_DMB_MODE:
+		case mDNIe_DMB_WARM_MODE:
+		case mDNIe_DMB_COLD_MODE:
+			if(lcd->cur_cabc != CABC_VIDEO)
+			{
+				nt35580_panel_send_sequence(lcd, pdata->seq_cabc_video);
+				lcd->cur_cabc= CABC_VIDEO;
+				printk(KERN_INFO "set CABC_VIDEO \n");
+			}
+			 break;
+		case mDNIe_NAVI:
+			if(lcd->cur_cabc != CABC_IMAGE)
+			{
+				nt35580_panel_send_sequence(lcd, pdata->seq_cabc_image);
+				lcd->cur_cabc = CABC_IMAGE;
+				printk(KERN_INFO "set CABC_IMAGE \n");
+			}
+			 break;
+		default:
+			if(lcd->cur_cabc != CABC_UI)
+			{
+				nt35580_panel_send_sequence(lcd, pdata->seq_cabc_ui);
+				lcd->cur_cabc = CABC_UI;
+				printk(KERN_INFO "set CABC_UI \n");
+			}
+			 break;
+		}
+	}
+}
+
+void off_cabc(struct s5p_lcd *lcd)
+{
+   struct s5p_tft_panel_data *pdata = lcd->data;
+
+   // ACL OFF
+   nt35580_panel_send_sequence(lcd, pdata->seq_cabc_off);
+   lcd->cur_cabc = CABC_OFF;
+   printk("set CABC_OFF \n");
+}
+#endif
+
+static int get_pwm_value_from_bl(int level,int cur_vendor)
+{
+   int tune_value;
+
+   if(cur_vendor == LCD_HITACHI) {
+//      printk("LCD HITACH >>>> Backlight update \n" );
+      if(level > MAX_BRIGHTNESS_LEVEL)
+         level = MAX_BRIGHTNESS_LEVEL;
+
+      if(level >= LOW_BACKLIGHT_VALUE_HITACHI)
+         tune_value = (level - LOW_BACKLIGHT_VALUE_HITACHI) * (MAX_BACKLIGHT_VALUE_HITACHI-LOW_BACKLIGHT_VALUE_HITACHI)
+                      / (MAX_BRIGHTNESS_LEVEL-LOW_BACKLIGHT_VALUE_HITACHI) + LOW_BACKLIGHT_VALUE_HITACHI;
+      else if(level > 0)
+         tune_value = DIM_BACKLIGHT_VALUE_HITACHI;
+      else
+         tune_value = level;
+
+      if(tune_value > MAX_BACKLIGHT_VALUE_HITACHI)
+         tune_value = MAX_BACKLIGHT_VALUE_HITACHI;
+
+   } else {
+      if(level >= LOW_BRIGHTNESS_LEVEL)
+	tune_value = (level - LOW_BRIGHTNESS_LEVEL) * (MAX_BACKLIGHT_VALUE-LOW_BACKLIGHT_VALUE_SONY)
+                     / (MAX_BRIGHTNESS_LEVEL-LOW_BRIGHTNESS_LEVEL) + LOW_BACKLIGHT_VALUE_SONY;
+      else if(level > 0)
+	tune_value = DIM_BACKLIGHT_VALUE_SONY;
+      else
+	tune_value = level;
+
+      if(tune_value > MAX_BACKLIGHT_VALUE)
+	tune_value = MAX_BACKLIGHT_VALUE;
+   }
+      if(level && !tune_value)
+	tune_value = 1;
+
+   return tune_value;
+}
+
+
 static void update_brightness(struct s5p_lcd *lcd, int level)
 {
 	struct s5p_tft_panel_data *pdata = lcd->data;
@@ -101,9 +225,16 @@ static void nt35580_ldi_enable(struct s5p_lcd *lcd)
 	update_brightness(lcd, lcd->bl);
 	nt35580_panel_send_sequence(lcd, pdata->display_on);
 
+	if (pdata->backlight_on)
+		pdata->backlight_on(1);
+#if defined(CONFIG_FB_S3C_MDNIE)
+	on_cabc(lcd);
+#endif
 	lcd->ldi_enable = 1;
 
 	mutex_unlock(&lcd->lock);
+//    printk("nt35580_ldi_enable");
+
 }
 
 static void nt35580_ldi_disable(struct s5p_lcd *lcd)
@@ -113,18 +244,28 @@ static void nt35580_ldi_disable(struct s5p_lcd *lcd)
 	mutex_lock(&lcd->lock);
 
 	lcd->ldi_enable = 0;
+   if(pdata->cur_vendor == LCD_HITACHI) {
+//        printk("susend HITACHI Panel \n");
+	nt35580_panel_send_sequence(lcd, pdata->sleep_in);
+	nt35580_panel_send_sequence(lcd, pdata->display_off);
+   } else {
 	nt35580_panel_send_sequence(lcd, pdata->display_off);
 	nt35580_panel_send_sequence(lcd, pdata->sleep_in);
+   }
+	if (pdata->backlight_on)
+		pdata->backlight_on(0);
 
 	mutex_unlock(&lcd->lock);
+//    printk("nt35580_ldi_disable \n");
 }
 
 static int s5p_bl_update_status(struct backlight_device *bd)
 {
 	struct s5p_lcd *lcd = bl_get_data(bd);
 	int bl = bd->props.brightness;
+	int gamma_value;
 
-	pr_debug("\nupdate status brightness %d\n",
+   pr_debug("\nupdate status brightness %d \n",
 				bd->props.brightness);
 
 	if (bl < 0 || bl > 255)
@@ -134,9 +275,12 @@ static int s5p_bl_update_status(struct backlight_device *bd)
 
 	lcd->bl = bl;
 
-	if (lcd->ldi_enable) {
-		pr_debug("\n bl :%d\n", bl);
-		update_brightness(lcd, bl);
+	gamma_value = get_pwm_value_from_bl(lcd->bl,lcd->data->cur_vendor);
+
+	if (lcd->ldi_enable && gamma_value != lcd->current_gamma) {
+   pr_debug("\n gamma_value :%d \n", gamma_value);
+		update_brightness(lcd, gamma_value);
+		lcd->current_gamma = gamma_value;
 	}
 
 	mutex_unlock(&lcd->lock);
@@ -166,6 +310,71 @@ void nt35580_late_resume(struct early_suspend *h)
 
 	return;
 }
+
+static int s5p_lcd_set_power(struct lcd_device *ld, int power)
+{
+	struct s5p_lcd *lcd = lcd_get_data(ld);
+	struct s5p_tft_panel_data *pdata = lcd->data;
+
+	printk(KERN_DEBUG "s5p_lcd_set_power is called: %d", power);
+
+	if (power)
+		nt35580_panel_send_sequence(lcd, pdata->display_on);
+	else
+		nt35580_panel_send_sequence(lcd, pdata->display_off);
+
+	return 0;
+}
+
+static int s5p_lcd_check_fb(struct lcd_device *lcddev, struct fb_info *fi)
+{
+	return 0;
+}
+
+struct lcd_ops s5p_lcd_ops = {
+	.set_power = s5p_lcd_set_power,
+	.check_fb = s5p_lcd_check_fb,
+};
+
+static ssize_t aclset_file_cmd_show(struct device *dev, struct device_attribute *attr, char *buf)
+{
+	struct s5p_lcd *lcd = dev_get_drvdata(dev);
+
+	printk("called %s\n", __func__);
+
+	return sprintf(buf, "%u\n", lcd->acl_enable);
+}
+static ssize_t aclset_file_cmd_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t size)
+{
+	struct s5p_lcd *lcd = dev_get_drvdata(dev);
+	int value;
+
+	sscanf(buf, "%d", &value);
+
+#if defined(CONFIG_FB_S3C_MDNIE)
+	if ((lcd->ldi_enable) && ((value == 0) || (value == 1))) {
+		printk(KERN_INFO "[acl set] in aclset_file_cmd_store, input value = %d\n", value);
+		if (lcd->acl_enable != value) {
+
+			if (value) {
+				lcd->acl_enable = value;
+				on_cabc(lcd);
+			}
+			else {
+				lcd->acl_enable = value;
+				off_cabc(lcd);
+			}
+//			lcd->acl_enable = value;
+			printk(KERN_INFO "aclset_file_cmd_store ... acl_enable =[%d]",lcd->acl_enable);
+
+		}
+	}
+#endif
+	return size;
+}
+
+static DEVICE_ATTR(aclset_file_cmd, 0664, aclset_file_cmd_show, aclset_file_cmd_store);
+
 static int __devinit nt35580_probe(struct spi_device *spi)
 {
 	struct s5p_lcd *lcd;
@@ -213,11 +422,37 @@ static int __devinit nt35580_probe(struct spi_device *spi)
 		goto err_setup;
 	}
 
+	lcd->lcd_dev = lcd_device_register("s5p_lcd",
+			&spi->dev, lcd, &s5p_lcd_ops);
+	if (!lcd->lcd_dev) {
+		dev_err(lcd->dev, "failed to register lcd\n");
+		ret = -EINVAL;
+		goto err_setup_lcd;
+	}
+
+	lcd->acl_class = class_create(THIS_MODULE, "aclset");
+	if (IS_ERR(lcd->acl_class))
+		pr_err("Failed to create class(acl_class)!\n");
+
+	lcd->switch_aclset_dev = device_create(lcd->acl_class, &spi->dev, 0, lcd, "switch_aclset");
+	if (IS_ERR(lcd->switch_aclset_dev))
+		pr_err("Failed to create device(switch_aclset_dev)!\n");
+
+	if (device_create_file(lcd->switch_aclset_dev, &dev_attr_aclset_file_cmd) < 0)
+		pr_err("Failed to create device file(%s)!\n", dev_attr_aclset_file_cmd.attr.name);
+
 	lcd->bl_dev->props.max_brightness = 255;
-	lcd->bl_dev->props.brightness = lcd->bl;
 	spi_set_drvdata(spi, lcd);
 
 	lcd->ldi_enable = 1;
+	lcd->acl_enable = 1;
+	printk("nt35580_probe ... acl_enable =[%d]",lcd->acl_enable);
+	lcd->cur_cabc = CABC_OFF;
+
+#if defined(CONFIG_FB_S3C_MDNIE)
+	init_mdnie_class(lcd);
+#endif
+
 #ifdef CONFIG_HAS_EARLYSUSPEND
 	lcd->early_suspend.suspend = nt35580_early_suspend;
 	lcd->early_suspend.resume = nt35580_late_resume;
@@ -227,6 +462,9 @@ static int __devinit nt35580_probe(struct spi_device *spi)
 	pr_info("%s successfully probed\n", __func__);
 
 	return 0;
+
+err_setup_lcd:
+	backlight_device_unregister(lcd->bl_dev);
 
 err_setup:
 	mutex_destroy(&lcd->lock);

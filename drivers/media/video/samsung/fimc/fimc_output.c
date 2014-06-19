@@ -101,9 +101,9 @@ int fimc_outdev_stop_streaming(struct fimc_control *ctrl, struct fimc_ctx *ctx)
 		break;
 	case FIMC_OVLY_NONE_SINGLE_BUF:		/* fall through */
 	case FIMC_OVLY_NONE_MULTI_BUF:
-#ifdef CONFIG_MACH_ARIES
+#if defined (CONFIG_MACH_ARIES) && !defined (CONFIG_SAMSUNG_YPG1)
 		if (ctx->status == FIMC_STREAMON_IDLE)
-#else // CONFIG_MACH_P1
+#else // CONFIG_MACH_P1/CONFIG_SAMSUNG_YPG1
 		if (ctx->status <= FIMC_READY_ON || ctx->status == FIMC_STREAMON_IDLE)
 #endif
 			ctx->status = FIMC_STREAMOFF;
@@ -153,7 +153,7 @@ int fimc_outdev_resume_dma(struct fimc_control *ctrl, struct fimc_ctx *ctx)
 	win->other_mem_addr = ctx->dst[1].base[FIMC_ADDR_Y];
 	win->other_mem_size = ctx->dst[1].length[FIMC_ADDR_Y];
 
-#ifdef CONFIG_MACH_ARIES
+#if defined (CONFIG_MACH_ARIES) && !defined (CONFIG_SAMSUNG_YPG1)
 	/* Update WIN size */
 	var.xres_virtual = fimd_rect.width;
 	var.yres_virtual = fimd_rect.height;
@@ -317,7 +317,7 @@ static int fimc_outdev_set_src_buf(struct fimc_control *ctrl,
 
 	return 0;
 }
-#ifdef CONFIG_MACH_P1
+#if defined (CONFIG_MACH_P1) || defined (CONFIG_SAMSUNG_YPG1)
 static void fimc_outdev_clear_dst_buf(struct fimc_control *ctrl,
 				   struct fimc_ctx *ctx, int index)
 {
@@ -343,7 +343,7 @@ static int fimc_outdev_set_dst_buf(struct fimc_control *ctrl,
 {
 	dma_addr_t *curr = &ctrl->mem.curr;
 	dma_addr_t end;
-#ifdef CONFIG_MACH_P1
+#if defined (CONFIG_MACH_P1) || defined (CONFIG_SAMSUNG_YPG1)
 	void *dst_mem = NULL;
 #endif
 	u32 width = ctrl->fb.lcd_hres;
@@ -357,7 +357,7 @@ static int fimc_outdev_set_dst_buf(struct fimc_control *ctrl,
 		fimc_err("%s: Reserved memory is not sufficient\n", __func__);
 		return -EINVAL;
 	}
-#ifdef CONFIG_MACH_P1
+#if defined (CONFIG_MACH_P1) || defined (CONFIG_SAMSUNG_YPG1)
 	if (ctx->dst[0].base[FIMC_ADDR_Y]) {
 		fimc_warn("%s: already allocated destination buffers\n",
 					__func__);
@@ -909,7 +909,7 @@ static int fimc_outdev_set_dst_dma_size(struct fimc_control *ctrl,
 	switch (ctx->overlay.mode) {
 	case FIMC_OVLY_NONE_MULTI_BUF:	/* fall through */
 	case FIMC_OVLY_NONE_SINGLE_BUF:
-#ifdef CONFIG_MACH_P1
+#if defined (CONFIG_MACH_P1) || defined (CONFIG_SAMSUNG_YPG1)
 	case FIMC_OVLY_DMA_AUTO:
 #endif
 		real.width = ctx->win.w.width;
@@ -934,7 +934,7 @@ static int fimc_outdev_set_dst_dma_size(struct fimc_control *ctrl,
 		break;
 
 	case FIMC_OVLY_DMA_MANUAL:	/* fall through */
-#ifdef CONFIG_MACH_ARIES
+#if defined (CONFIG_MACH_ARIES) && !defined (CONFIG_SAMSUNG_YPG1)
 	case FIMC_OVLY_DMA_AUTO:
 #endif
 		real.width = ctx->win.w.width;
@@ -1311,7 +1311,7 @@ int fimc_reqbufs_output(void *fh, struct v4l2_requestbuffers *b)
 						__func__, i, buf->vir_addr[i]);
 				}
 			}
-#ifdef CONFIG_MACH_P1
+#if defined (CONFIG_MACH_P1) || defined (CONFIG_SAMSUNG_YPG1)
 
 			/* clear destination buffer address */
 			ctrl->mem.curr = ctx->dst[0].base[FIMC_ADDR_Y];
@@ -1336,15 +1336,15 @@ int fimc_reqbufs_output(void *fh, struct v4l2_requestbuffers *b)
 			if (ret)
 				return ret;
 		} else if (b->memory == V4L2_MEMORY_USERPTR) {
-#ifdef CONFIG_MACH_ARIES
+#if defined (CONFIG_MACH_ARIES) && !defined (CONFIG_SAMSUNG_YPG1)
 			if (mode == FIMC_OVLY_DMA_AUTO)
-#else // CONFIG_MACH_P1
+#else // CONFIG_MACH_P1/CONFIG_SAMSUNG_YPG1
 			if (mode == FIMC_OVLY_DMA_AUTO ||
 					mode == FIMC_OVLY_NOT_FIXED)
 #endif
 				ctx->overlay.req_idx = FIMC_USERPTR_IDX;
 		}
-#ifdef CONFIG_MACH_P1
+#if defined (CONFIG_MACH_P1) || defined (CONFIG_SAMSUNG_YPG1)
 		/* initialize destination buffers */
 		if (mode == FIMC_OVLY_DMA_AUTO || mode == FIMC_OVLY_NOT_FIXED) {
 			ret = fimc_outdev_set_dst_buf(ctrl, ctx);
@@ -1750,7 +1750,7 @@ int fimc_streamon_output(void *fh)
 	if (ctx->overlay.mode == FIMC_OVLY_NOT_FIXED)
 		ctx->overlay.mode = FIMC_OVLY_MODE;
 
-#ifdef CONFIG_MACH_ARIES
+#if defined (CONFIG_MACH_ARIES) && !defined (CONFIG_SAMSUNG_YPG1)
 	/* initialize destination buffers */
 	if (ctx->overlay.mode == FIMC_OVLY_DMA_AUTO) {
 		ret = fimc_outdev_set_dst_buf(ctrl, ctx);
@@ -1820,7 +1820,7 @@ int fimc_streamoff_output(void *fh)
 
 	if (ctrl->out->last_ctx == ctx->ctx_num)
 		ctrl->out->last_ctx = -1;
-#ifdef CONFIG_MACH_ARIES
+#if defined (CONFIG_MACH_ARIES) && !defined (CONFIG_SAMSUNG_YPG1)
 	if (ctx->overlay.mode == FIMC_OVLY_DMA_AUTO) {
 		ctrl->mem.curr = ctx->dst[0].base[FIMC_ADDR_Y];
 
@@ -2041,7 +2041,7 @@ static int fimc_qbuf_output_dma_auto(struct fimc_control *ctrl,
 		win->other_mem_addr = ctx->dst[1].base[FIMC_ADDR_Y];
 		win->other_mem_size = ctx->dst[1].length[FIMC_ADDR_Y];
 
-#ifdef CONFIG_MACH_ARIES
+#if defined (CONFIG_MACH_ARIES) && !defined (CONFIG_SAMSUNG_YPG1)
 		/* Update WIN size */
 		var.xres_virtual = fimd_rect.width;
 		var.yres_virtual = fimd_rect.height;
@@ -2071,7 +2071,7 @@ static int fimc_qbuf_output_dma_auto(struct fimc_control *ctrl,
 			return -EINVAL;
 		}
 
-#ifdef CONFIG_MACH_P1
+#if defined (CONFIG_MACH_P1) || defined (CONFIG_SAMSUNG_YPG1)
 		mutex_lock(&ctrl->lock);
 		if (ctx->overlay.mode == FIMC_OVLY_DMA_AUTO &&
 				ctrl->fb.is_enable == 0) {
@@ -2216,9 +2216,9 @@ int fimc_qbuf_output(void *fh, struct v4l2_buffer *b)
 		fimc_clk_en(ctrl, true);
 
 		ctx = &ctrl->out->ctx[ctx_num];
-#ifdef CONFIG_MACH_ARIES
+#if defined (CONFIG_MACH_ARIES) && !defined (CONFIG_SAMSUNG_YPG1)
 		if (ctx_num != ctrl->out->last_ctx) {
-#else // CONFIG_MACH_P1
+#else // CONFIG_MACH_P1/CONFIG_SAMSUNG_YPG1
 		if ((ctx->overlay.mode == FIMC_OVLY_NONE_SINGLE_BUF) ||
 				(ctx->overlay.mode != FIMC_OVLY_NONE_SINGLE_BUF
 				 && ctx_num != ctrl->out->last_ctx)) {

@@ -22,6 +22,7 @@ obj-$(CONFIG_INPUT_BFIN_ROTARY)		+= bfin_rotary.o
 obj-$(CONFIG_INPUT_BH1721)		+= bh1721.o
 obj-$(CONFIG_INPUT_BMA020)		+= bma020_i2c.o bma020.o bma020_acc.o bma020calib.o
 obj-$(CONFIG_INPUT_BMA023)		+= bma023.o
+obj-$(CONFIG_INPUT_BMA222)		+= bma222.o
 obj-$(CONFIG_INPUT_YAS529)		+= yas529.o
 obj-$(CONFIG_INPUT_KR3DH)		+= kr3dh.o
 obj-$(CONFIG_OPTICAL_GP2A)		+= gp2a.o

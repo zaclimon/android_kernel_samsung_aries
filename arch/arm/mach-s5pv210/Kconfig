@@ -242,6 +242,7 @@ config MACH_ARIES
 	select S3C_DEV_HSMMC
 	select S3C_DEV_HSMMC1 if !S5PV210_SD_CH0_8BIT
 	select S3C_DEV_HSMMC2
+	select S3C_DEV_HSMMC3 if SAMSUNG_YPG1
 	select S5PV210_SETUP_SDHCI
 	select S5PV210_POWER_DOMAIN
 	select S5P_DEV_CSIS0
@@ -333,6 +334,12 @@ config SAMSUNG_EPIC
 	depends on MACH_ARIES
 	help
 	 Select Samsung Epic 4G
+
+config SAMSUNG_YPG1
+	bool "select YP-G1"
+	depends on MACH_ARIES
+	help
+	 Select Samsung Galaxy Player 4.0
 endchoice
 endif
 
@@ -461,6 +468,13 @@ config WIFI_CONTROL_FUNC
        bool "Enable WiFi control function abstraction"
        help
          Enables Power/Reset/Carddetect function abstraction
+
+config POKE_REC_BOOT_MAGIC
+	bool "Flag stage1 init to boot recovery on reboot(..., \"recovery\")"
+	help
+	  Poke REC_BOOT_MAGIC into REC_BOOT_ADDR on reboot(..., "recovery") to flag
+	  stage1 init to load the recovery image.
+
 endif
 
 config SEC_HEADSET

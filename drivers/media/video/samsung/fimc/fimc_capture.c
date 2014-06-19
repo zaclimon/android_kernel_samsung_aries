@@ -40,7 +40,7 @@
 #define fimc_dbg fimc_err
 #endif
 
-#ifdef CONFIG_MACH_ARIES
+#if defined (CONFIG_MACH_ARIES) && !defined (CONFIG_SAMSUNG_YPG1)
 static int vtmode = 0;
 static int device_id = 0;
 #else // CONFIG_MACH_P1
@@ -207,7 +207,7 @@ void s3c_csis_start(int lanes, int settle, int align, int width, int height,
 
 static int fimc_camera_init(struct fimc_control *ctrl)
 {
-#ifdef CONFIG_MACH_P1
+#if defined (CONFIG_MACH_P1) || defined (CONFIG_SAMSUNG_YPG1)
 	struct fimc_global *fimc = get_fimc_dev();
 #endif
 	int ret;
@@ -217,7 +217,7 @@ static int fimc_camera_init(struct fimc_control *ctrl)
 	/* do nothing if already initialized */
 	if (ctrl->cam->initialized)
 		return 0;
-#ifdef CONFIG_MACH_P1
+#if defined (CONFIG_MACH_P1) || defined (CONFIG_SAMSUNG_YPG1)
 	if (camera_back_check < 0) {
 		printk(KERN_ERR "Camera init is failed.\n");
 		camera_back_check = 0;
@@ -235,7 +235,7 @@ static int fimc_camera_init(struct fimc_control *ctrl)
 	if (ret == -ENOIOCTLCMD) {
 		fimc_err("%s: init subdev api not supported\n",
 			__func__);
-#ifdef CONFIG_MACH_P1
+#if defined (CONFIG_MACH_P1) || defined (CONFIG_SAMSUNG_YPG1)
 		camera_back_check = 0;
 		fimc->active_camera = 0;
 		return ret;
@@ -285,7 +285,7 @@ static int fimc_camera_start(struct fimc_control *ctrl)
 {
 	struct v4l2_frmsizeenum cam_frmsize;
 	struct v4l2_control cam_ctrl;
-#ifdef CONFIG_MACH_P1
+#if defined (CONFIG_MACH_P1) || defined (CONFIG_SAMSUNG_YPG1)
 	struct fimc_global *fimc = get_fimc_dev();
 #endif
 	int ret;
@@ -299,9 +299,9 @@ static int fimc_camera_start(struct fimc_control *ctrl)
 			return ret;
 		}
 	} else {
-#ifdef CONFIG_MACH_ARIES
+#if defined (CONFIG_MACH_ARIES) && !defined (CONFIG_SAMSUNG_YPG1)
 		if (vtmode == 1 && device_id != 0 && (ctrl->cap->rotate == 90 || ctrl->cap->rotate == 270)) {
-#else // CONFIG_MACH_P1
+#else // CONFIG_MACH_P1/CONFIG_SAMSUNG_YPG1
 		if ((ctrl->vt_mode == 1 || ctrl->vt_mode == 2)
 			&& (fimc->active_camera == CAMERA_ID_FRONT)
 			&& (ctrl->cap->rotate == 90 || ctrl->cap->rotate == 270)) {
@@ -312,10 +312,10 @@ static int fimc_camera_start(struct fimc_control *ctrl)
 			ctrl->cam->window.height = 480;
 			ctrl->cam->width = cam_frmsize.discrete.width;
 			ctrl->cam->height = cam_frmsize.discrete.height;
-#ifdef CONFIG_MACH_ARIES
+#if defined (CONFIG_MACH_ARIES) && !defined (CONFIG_SAMSUNG_YPG1)
 			dev_err(ctrl->dev, "vtmode = 1, rotate = %d, device = front, cam->width = %d, cam->height = %d\n", ctrl->cap->rotate, ctrl->cam->width, ctrl->cam->height);
 		} else if (device_id != 0 && vtmode != 1) {
-#else // CONFIG_MACH_P1
+#else // CONFIG_MACH_P1/CONFIG_SAMSUNG_YPG1
 			printk("line(%d):vtmode = %d, rotate = %d, device = front(%d), cam->width = %d, cam->height = %d\n", __LINE__, ctrl->vt_mode, ctrl->cap->rotate, fimc->active_camera, ctrl->cam->width, ctrl->cam->height);
 		} else if ((ctrl->vt_mode == 1 || ctrl->vt_mode == 2)
 				&& (fimc->active_camera == CAMERA_ID_BACK || fimc->active_camera == CAMERA_ID_MAX
@@ -341,7 +341,7 @@ static int fimc_camera_start(struct fimc_control *ctrl)
 			ctrl->cam->window.height = 480;
 			ctrl->cam->width = cam_frmsize.discrete.width;
 			ctrl->cam->height = cam_frmsize.discrete.height;
-#ifdef CONFIG_MACH_ARIES
+#if defined (CONFIG_MACH_ARIES) && !defined (CONFIG_SAMSUNG_YPG1)
 			dev_err(ctrl->dev, "%s, crop(368x480), vtmode = 0, device = front, cam->width = %d, cam->height = %d\n", __func__, ctrl->cam->width, ctrl->cam->height);
 #else
 			printk("line(%d):vtmode = %d, rotate = %d, device = front(%d), cam->width = %d, cam->height = %d\n", __LINE__, ctrl->vt_mode, ctrl->cap->rotate, fimc->active_camera, ctrl->cam->width, ctrl->cam->height);
@@ -367,7 +367,7 @@ static int fimc_camera_start(struct fimc_control *ctrl)
 			printk("line(%d):vtmode = %d, rotate = %d, device = front(%d), cam->width = %d, cam->height = %d\n", __LINE__, ctrl->vt_mode, ctrl->cap->rotate, fimc->active_camera, ctrl->cam->width, ctrl->cam->height);
 #endif
 		} else {
-#ifdef CONFIG_MACH_P1
+#if defined (CONFIG_MACH_P1) || defined (CONFIG_SAMSUNG_YPG1)
 			ctrl->cam->width = cam_frmsize.discrete.width;
 			ctrl->cam->height = cam_frmsize.discrete.height;
 #endif
@@ -375,7 +375,7 @@ static int fimc_camera_start(struct fimc_control *ctrl)
 			ctrl->cam->window.top = 0;
 			ctrl->cam->window.width = ctrl->cam->width;
 			ctrl->cam->window.height = ctrl->cam->height;
-#ifdef CONFIG_MACH_P1
+#if defined (CONFIG_MACH_P1) || defined (CONFIG_SAMSUNG_YPG1)
 			printk("line(%d):vtmode = %d, rotate = %d, device = %d, cam->width = %d, cam->height = %d\n", __LINE__, ctrl->vt_mode, ctrl->cap->rotate, fimc->active_camera, ctrl->cam->width, ctrl->cam->height);
 #endif
 		}
@@ -393,7 +393,7 @@ static int fimc_camera_start(struct fimc_control *ctrl)
 	if (ret < 0 && ret != -ENOIOCTLCMD) {
 		ctrl->cam->initialized = 0;
 		ret = fimc_camera_init(ctrl);
-#ifdef CONFIG_MACH_P1
+#if defined (CONFIG_MACH_P1) || defined (CONFIG_SAMSUNG_YPG1)
 		if(ret < 0) {
 			fimc_err("%s: Error in fimc_camera_init - start\n", __func__);
 			camera_back_check = 0;
@@ -734,7 +734,7 @@ static int fimc_configure_subdev(struct fimc_control *ctrl)
 	if (!sd) {
 		fimc_err("%s: v4l2 subdev board registering failed\n",
 				__func__);
-#ifdef CONFIG_MACH_P1
+#if defined (CONFIG_MACH_P1) || defined (CONFIG_SAMSUNG_YPG1)
 		camera_back_check = 0;
 #endif
 	}
@@ -753,7 +753,7 @@ int fimc_s_input(struct file *file, void *fh, unsigned int i)
 
 	fimc_dbg("%s: index %d\n", __func__, i);
 
-#ifdef CONFIG_MACH_P1
+#if defined (CONFIG_MACH_P1) || defined (CONFIG_SAMSUNG_YPG1)
 	int err = 0;
 #if defined(CONFIG_VIDEO_NM6XX)
 	if( i == 0 && camera_back_check && camera_active_type == 4 )
@@ -817,11 +817,11 @@ int fimc_s_input(struct file *file, void *fh, unsigned int i)
 
 	mutex_unlock(&ctrl->v4l2_lock);
 
-#ifdef CONFIG_MACH_ARIES
+#if defined (CONFIG_MACH_ARIES) && !defined (CONFIG_SAMSUNG_YPG1)
 
 	return 0;
 
-#else // CONFIG_MACH_P1
+#else // CONFIG_MACH_P1/CONFIG_SAMSUNG_YPG1
 	if ((!camera_back_check) && (fimc->active_camera != 1)) {
 		do {
 			struct v4l2_control v_ctrl;
@@ -1183,7 +1183,7 @@ int fimc_reqbufs_capture(void *fh, struct v4l2_requestbuffers *b)
 	mutex_lock(&ctrl->v4l2_lock);
 
 	if (b->count < 1 || b->count > FIMC_CAPBUFS) {
-#ifdef CONFIG_MACH_P1
+#if defined (CONFIG_MACH_P1) || defined (CONFIG_SAMSUNG_YPG1)
 		mutex_unlock(&ctrl->v4l2_lock);
 #endif
 		return -EINVAL;
@@ -1432,7 +1432,7 @@ int fimc_s_ctrl_capture(void *fh, struct v4l2_control *c)
 		break;
 
 	case V4L2_CID_CAMERA_VT_MODE:
-#ifdef CONFIG_MACH_ARIES
+#if defined (CONFIG_MACH_ARIES) && !defined (CONFIG_SAMSUNG_YPG1)
 		vtmode = c->value;
 #else
 		ctrl->vt_mode = c->value;
@@ -1750,7 +1750,7 @@ static void fimc_reset_capture(struct fimc_control *ctrl)
 int fimc_streamon_capture(void *fh)
 {
 	struct fimc_control *ctrl = ((struct fimc_prv_data *)fh)->ctrl;
-#ifdef CONFIG_MACH_P1
+#if defined (CONFIG_MACH_P1) || defined (CONFIG_SAMSUNG_YPG1)
 	if (!ctrl->cap || !ctrl->cap->nr_bufs) {
 		fimc_err("%s: Invalid capture setting.\n", __func__);
 		return -EINVAL;
@@ -1758,14 +1758,14 @@ int fimc_streamon_capture(void *fh)
 #endif
 	struct fimc_capinfo *cap = ctrl->cap;
 	struct v4l2_frmsizeenum cam_frmsize;
-#ifdef CONFIG_MACH_P1
+#if defined (CONFIG_MACH_P1) || defined (CONFIG_SAMSUNG_YPG1)
 	struct fimc_global *fimc = get_fimc_dev();
 #endif
 	int rot;
 	int ret;
 
 	fimc_dbg("%s\n", __func__);
-#ifdef CONFIG_MACH_ARIES
+#if defined (CONFIG_MACH_ARIES) && !defined (CONFIG_SAMSUNG_YPG1)
 	char *ce147 = "CE147 0-003c";
 	device_id = strcmp(ctrl->cam->sd->name, ce147);
 	fimc_dbg("%s, name(%s), device_id(%d), vtmode(%d)\n", __func__, ctrl->cam->sd->name , device_id, vtmode);
@@ -1796,16 +1796,16 @@ int fimc_streamon_capture(void *fh)
 	ret = subdev_call(ctrl, video, enum_framesizes, &cam_frmsize);
 	if (ret < 0) {
 		dev_err(ctrl->dev, "%s: enum_framesizes failed\n", __func__);
-#ifdef CONFIG_MACH_P1
+#if defined (CONFIG_MACH_P1) || defined (CONFIG_SAMSUNG_YPG1)
 		camera_back_check = 0;
 		mutex_unlock(&ctrl->v4l2_lock);
 #endif
 		if(ret != -ENOIOCTLCMD)
 			return ret;
 	} else {
-#ifdef CONFIG_MACH_ARIES
+#if defined (CONFIG_MACH_ARIES) && !defined (CONFIG_SAMSUNG_YPG1)
 		if (vtmode == 1 && device_id != 0 && (cap->rotate == 90 || cap->rotate == 270)) {
-#else // CONFIG_MACH_P1
+#else // CONFIG_MACH_P1/CONFIG_SAMUSNG_YPG1
 		if ((ctrl->vt_mode == 1 || ctrl->vt_mode == 2)
 			&& (fimc->active_camera == CAMERA_ID_FRONT)
 			&& (ctrl->cap->rotate == 90 || ctrl->cap->rotate == 270)) {
@@ -1816,10 +1816,10 @@ int fimc_streamon_capture(void *fh)
 			ctrl->cam->window.height = 480;
 			ctrl->cam->width = cam_frmsize.discrete.width;
 			ctrl->cam->height = cam_frmsize.discrete.height;
-#ifdef CONFIG_MACH_ARIES
+#if defined (CONFIG_MACH_ARIES) && !defined (CONFIG_SAMSUNG_YPG1)
 			dev_err(ctrl->dev, "vtmode = 1, rotate = %d, device = front, cam->width = %d, cam->height = %d\n", cap->rotate, ctrl->cam->width, ctrl->cam->height);
 		} else if (device_id != 0 && vtmode != 1) {
-#else // CONFIG_MACH_P1
+#else // CONFIG_MACH_P1/CONFIG_SAMUSNG_YPG1
 			printk("line(%d):vtmode = %d, rotate = %d, device = front(%d), cam->width = %d, cam->height = %d\n", __LINE__, ctrl->vt_mode, ctrl->cap->rotate, fimc->active_camera, ctrl->cam->width, ctrl->cam->height);
 		} else if ((ctrl->vt_mode == 1 || ctrl->vt_mode == 2)
 				&& (fimc->active_camera == CAMERA_ID_BACK || fimc->active_camera == CAMERA_ID_MAX)
@@ -1841,9 +1841,9 @@ int fimc_streamon_capture(void *fh)
 			ctrl->cam->window.height = 480;
 			ctrl->cam->width = cam_frmsize.discrete.width;
 			ctrl->cam->height =cam_frmsize.discrete.height;
-#ifdef CONFIG_MACH_ARIES
+#if defined (CONFIG_MACH_ARIES) && !defined (CONFIG_SAMSUNG_YPG1)
 			dev_err(ctrl->dev, "%s, crop(368x480), vtmode = 0, device = front, cam->width = %d, cam->height = %d\n", __func__, ctrl->cam->width, ctrl->cam->height);
-#else // CONFIG_MACH_P1
+#else // CONFIG_MACH_P1/CONFIG_SAMUSNG_YPG1
 			printk("line(%d):vtmode = %d, rotate = %d, device = front(%d), cam->width = %d, cam->height = %d\n", __LINE__, ctrl->vt_mode, ctrl->cap->rotate, fimc->active_camera, ctrl->cam->width, ctrl->cam->height);
 		} else if ((ctrl->vt_mode == 0)
 				&& (fimc->active_camera == CAMERA_ID_FRONT)
@@ -1867,16 +1867,16 @@ int fimc_streamon_capture(void *fh)
 			printk("line(%d):vtmode = %d, rotate = %d, device = front(%d), cam->width = %d, cam->height = %d\n", __LINE__, ctrl->vt_mode, ctrl->cap->rotate, fimc->active_camera, ctrl->cam->width, ctrl->cam->height);
 #endif
 		} else {
-#ifdef CONFIG_MACH_P1
+#if defined (CONFIG_MACH_P1) || defined (CONFIG_SAMSUNG_YPG1)
 			ctrl->cam->width = cam_frmsize.discrete.width;
 			ctrl->cam->height = cam_frmsize.discrete.height;
 #endif
 			ctrl->cam->window.left = 0;
 			ctrl->cam->window.top = 0;
-#ifdef CONFIG_MACH_ARIES
+#if defined (CONFIG_MACH_ARIES) && !defined (CONFIG_SAMSUNG_YPG1)
 			ctrl->cam->width = ctrl->cam->window.width = cam_frmsize.discrete.width;
 			ctrl->cam->height = ctrl->cam->window.height = cam_frmsize.discrete.height;
-#else // CONFIG_MACH_P1
+#else // CONFIG_MACH_P1/CONFIG_SAMUSNG_YPG1
 			ctrl->cam->window.width = ctrl->cam->width;
 			ctrl->cam->window.height = ctrl->cam->height;
 			printk("line(%d):vtmode = %d, rotate = %d, device = %d, cam->width = %d, cam->height = %d\n", __LINE__, ctrl->vt_mode, ctrl->cap->rotate, fimc->active_camera, ctrl->cam->width, ctrl->cam->height);
@@ -1917,12 +1917,13 @@ int fimc_streamon_capture(void *fh)
 			fimc_hwset_output_yuv(ctrl, cap->fmt.pixelformat);
 
 		fimc_hwset_output_size(ctrl, cap->fmt.width, cap->fmt.height);
-#ifdef CONFIG_MACH_ARIES
+#if defined (CONFIG_MACH_ARIES) && !defined (CONFIG_SAMSUNG_YPG1)
 		if ((device_id != 0) && (vtmode != 1)) {
 			ctrl->cap->rotate = 90;
 			dev_err(ctrl->dev, "%s, rotate 90", __func__);
 		}
-#else // CONFIG_MACH_P1
+#endif
+#ifdef CONFIG_MACH_P1
 		if ((fimc->active_camera == CAMERA_ID_FRONT) && (ctrl->vt_mode == 0)) {
 			ctrl->cap->rotate = 270;
 			dev_err(ctrl->dev, "%s, rotate 270", __func__);
@@ -1955,7 +1956,7 @@ int fimc_streamon_capture(void *fh)
 	if (ctrl->cap->fmt.colorspace == V4L2_COLORSPACE_JPEG &&
 			ctrl->id != 2) {
 		struct v4l2_control cam_ctrl;
-#ifdef CONFIG_MACH_P1
+#if defined (CONFIG_MACH_P1) || defined (CONFIG_SAMSUNG_YPG1)
 		cam_ctrl.id = V4L2_CID_CAM_CAPTURE;
 		ret = subdev_call(ctrl, core, s_ctrl, &cam_ctrl);
 		if (ret < 0 && ret != -ENOIOCTLCMD) {
@@ -1999,7 +2000,7 @@ int fimc_streamoff_capture(void *fh)
 
 	if (!ctrl->cap || !ctrl->cam || !ctrl->cam->sd) {
 		fimc_err("%s: No capture info.\n", __func__);
-#ifdef CONFIG_MACH_P1
+#if defined (CONFIG_MACH_P1) || defined (CONFIG_SAMSUNG_YPG1)
 		camera_back_check = 0;
 #endif
 		return -ENODEV;
@@ -2015,7 +2016,7 @@ int fimc_streamoff_capture(void *fh)
 int fimc_qbuf_capture(void *fh, struct v4l2_buffer *b)
 {
 	struct fimc_control *ctrl = ((struct fimc_prv_data *)fh)->ctrl;
-#ifdef CONFIG_MACH_ARIES
+#if defined (CONFIG_MACH_ARIES) && !defined (CONFIG_SAMSUNG_YPG1)
 	if (!ctrl->cap || !ctrl->cap->nr_bufs) {
 		fimc_err("%s: Invalid capture setting.\n", __func__);
 		return -EINVAL;

@@ -544,6 +544,20 @@ err:
 	return ret;
 }
 
+#if defined (CONFIG_SAMSUNG_YPG1)
+static int dummy_stftd(int state) { return 0; }
+
+static int (*set_tsp_for_ta_detect)(int) = dummy_stftd;
+
+void set_stftd(int (*func)(int))
+{
+	if (!func)
+		func = dummy_stftd;
+	set_tsp_for_ta_detect = func;
+}
+EXPORT_SYMBOL(set_stftd);
+#endif
+
 static int s3c_cable_status_update(struct chg_data *chg)
 {
 	int ret;

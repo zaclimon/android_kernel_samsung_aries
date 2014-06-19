@@ -668,6 +668,19 @@ static int __init parse_tag_cmdline(const struct tag *tag)
 		COMMAND_LINE_SIZE);
 #elif defined(CONFIG_CMDLINE_FORCE)
 	pr_warning("Ignoring tag cmdline (using the default kernel command line)\n");
+
+#if defined (CONFIG_SAMSUNG_YPG1)
+	/*  By forcing the cmdline, we lose the bootloader supplied bootmode
+	 *    that is necessary to enter recovery using the 3-finger boot
+	 *    method.  Parse the supplied cmdline for the recovery bootmode
+	 *    and append to the default cmdline.
+	 */
+	if (strstr(tag->u.cmdline.cmdline,"bootmode=2") != NULL){
+		pr_warning("Adding recovery bootmode to the default (forced) kernel command line\n");
+		strlcat(default_command_line, " bootmode=2", COMMAND_LINE_SIZE);
+	}
+#endif
+
 #else
 	strlcpy(default_command_line, tag->u.cmdline.cmdline,
 		COMMAND_LINE_SIZE);
