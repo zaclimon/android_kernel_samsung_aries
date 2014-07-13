@@ -45,7 +45,6 @@
 #include <mach/sec_switch.h>
 #include <mach/adc.h>
 #include <mach/param.h>
-#include <mach/system.h>
 
 #ifdef CONFIG_SEC_HEADSET
 #include <mach/sec_jack.h>
@@ -83,6 +82,7 @@
 #include <media/nm6xx_platform.h>
 #endif
 
+#include <plat/system-reset.h>
 #include <plat/regs-serial.h>
 #include <plat/s5pv210.h>
 #include <plat/devs.h>
