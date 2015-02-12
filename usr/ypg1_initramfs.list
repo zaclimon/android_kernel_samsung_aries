@@ -47,7 +47,7 @@ dir /lvm/etc 755 0 0
 dir /lvm/sbin 755 0 0
 file /lvm/etc/lvm.conf source/usr/ypg1_initramfs_files/lvm.conf 755 0 0
 file /lvm/sbin/lvm source/usr/ypg1_initramfs_files/lvm 755 0 0
-file /stage1/busybox source/usr/ypg1_initramfs_files/busybox 755 0 0
+file /stage1/busybox ../../utilities/busybox 755 0 0
 file /stage1/bml_over_mtd ../../bml_over_mtd 755 0 0
 file /stage1/kexec source/usr/ypg1_initramfs_files/kexec 755 0 0
 file /stage1/init source/usr/ypg1_initramfs_files/init 755 0 0
