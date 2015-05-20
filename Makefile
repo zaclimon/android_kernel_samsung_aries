@@ -568,7 +568,7 @@ all: vmlinux
 ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
 KBUILD_CFLAGS        += -Os
 else
-KBUILD_CFLAGS   += -O3 -fmodulo-sched -fmodulo-sched-allow-regmoves -fno-tree-vectorize -mno-unaligned-access
+KBUILD_CFLAGS   += -Ofast -fmodulo-sched -fmodulo-sched-allow-regmoves -fno-tree-vectorize -mno-unaligned-access
 endif
 
 include $(srctree)/arch/$(SRCARCH)/Makefile
