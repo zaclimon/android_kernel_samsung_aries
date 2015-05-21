@@ -64,7 +64,7 @@ static unsigned int orig_sampling_down_factor;
 static unsigned int orig_io_is_busy;
 static unsigned int orig_sampling_down_max_mom;
 
-extern unsigned int touch_state_val;
+extern unsigned int touch_state_val = 0;
 
 #define LATENCY_MULTIPLIER			(1000)
 #define MIN_LATENCY_MULTIPLIER			(100)
