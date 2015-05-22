@@ -226,6 +226,15 @@ static unsigned int ksm_thread_sleep_millisecs = 20;
 /* Boolean to indicate whether to use deferred timer or not */
 static bool use_deferred_timer;
 
+#ifdef CONFIG_NUMA
+/* Zeroed when merging across nodes is not allowed */
+static unsigned int ksm_merge_across_nodes = 1;
+static int ksm_nr_node_ids = 1;
+#else
+#define ksm_merge_across_nodes	1U
+#define ksm_nr_node_ids		1
+#endif
+
 #define KSM_RUN_STOP	0
 #define KSM_RUN_MERGE	1
 #define KSM_RUN_UNMERGE	2
