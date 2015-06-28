@@ -2557,34 +2557,26 @@ static struct sec_jack_zone sec_jack_zones[] = {
  * If your HW supports 3-buttons earjack made by Samsung and HTC,
  * add some zones here.
  */
+/* To support 3-buttons earjack */
 static struct sec_jack_buttons_zone sec_jack_buttons_zones[] = {
-#if 0
 	{
-		/* 0 <= adc <= 150, stable zone */
+		/* 0 <= adc <=110, stable zone */
 		.code		= KEY_MEDIA,
 		.adc_low	= 0,
-		.adc_high	= 150,
+		.adc_high	= 110,
 	},
 	{
-		/* 200 <= adc <= 400, stable zone */
-		.code		= KEY_VOLUMEUP,
-		.adc_low	= 200,
-		.adc_high	= 400,
-	},
-	{
-		/* 600 <= adc <= 800, stable zone */
+		/* 130 <= adc <= 365, stable zone */
 		.code		= KEY_VOLUMEDOWN,
-		.adc_low	= 600,
-		.adc_high	= 800,
+		.adc_low	= 130,
+		.adc_high	= 365,
 	},
-#else
 	{
-		/* 0 <= adc <=1000, stable zone */
-		.code		= KEY_MEDIA,
-		.adc_low	= 0,
-		.adc_high	= 1000,
+		/* 385 <= adc <= 870, stable zone */
+		.code		= KEY_VOLUMEUP,
+		.adc_low	= 385,
+		.adc_high	= 870,
 	},
-#endif
 };
 
 static int sec_jack_get_adc_value(void)
