@@ -2567,13 +2567,13 @@ static struct sec_jack_buttons_zone sec_jack_buttons_zones[] = {
 	},
 	{
 		/* 130 <= adc <= 365, stable zone */
-		.code		= KEY_VOLUMEDOWN,
+		.code		= KEY_VOLUMEUP,
 		.adc_low	= 130,
 		.adc_high	= 365,
 	},
 	{
 		/* 385 <= adc <= 870, stable zone */
-		.code		= KEY_VOLUMEUP,
+		.code		= KEY_VOLUMEDOWN,
 		.adc_low	= 385,
 		.adc_high	= 870,
 	},
